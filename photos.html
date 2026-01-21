@@ -199,4 +199,108 @@
       const file     = $("file").files?.[0];
 
       if(!file){ setStatus("사진 파일을 선택해줘!", true); return; }
-      if(file.size > 8 * 1024 * 1024){ setS
+      if(file.size > 8 * 1024 * 1024){ setStatus("파일이 너무 커요. 8MB 이하로 올려줘!", true); return; }
+
+      setStatus("업로드 중...");
+
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const safeExt = ["jpg","jpeg","png","webp","gif"].includes(ext) ? ext : "jpg";
+      const path = `${Date.now()}_${Math.random().toString(16).slice(2)}.${safeExt}`;
+
+      const { error: upErr } = await sb.storage.from(BUCKET).upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type || "image/jpeg",
+      });
+      if(upErr){ setStatus("업로드 실패: " + upErr.message, true); return; }
+
+      // ✅ DB에는 image_path 로 저장 (서버 함수도 이 컬럼 기준으로 찾음)
+      const { error: dbErr } = await sb.from(TABLE).insert([{ nickname, caption, image_path: path }]);
+      if(dbErr){
+        await sb.storage.from(BUCKET).remove([path]);
+        setStatus("저장 실패: " + dbErr.message, true);
+        return;
+      }
+
+      setStatus("업로드 완료! 💖");
+      $("file").value = "";
+      $("caption").value = "";
+      await listPhotos();
+    }
+
+    async function adminDelete(id, path){
+      const token = $("adminToken").value.trim();
+      if(!token){ alert("운영진 토큰을 입력해야 삭제할 수 있어요!"); return false; }
+      if(!confirm("정말 삭제할까요?")) return false;
+
+      // ✅ 여기서 바로 보여줌 (안 뜨면 클릭 이벤트가 안 타는 거)
+      setStatus(`삭제요청: id=${String(id)} / path=${String(path)}`);
+
+      if(!id || !path){
+        setStatus(`삭제 실패: 버튼 데이터가 비었어요 (id=${String(id)} / path=${String(path)})`, true);
+        console.error("missing dataset", { id, path });
+        return false;
+      }
+
+      try{
+        const res = await fetch("/.netlify/functions/admin_delete", {
+          method: "POST",
+          headers: { "Content-Type":"application/json" },
+          body: JSON.stringify({ token, id, path }),
+        });
+
+        const text = await res.text();
+        console.log("admin_delete 응답:", res.status, text);
+
+        let data = {};
+        try{ data = JSON.parse(text); }catch(e){ data = { raw: text }; }
+
+        if(!res.ok){
+          const dbg = data && data.debug ? ` / debug: ${JSON.stringify(data.debug)}` : "";
+          setStatus("삭제 실패: " + (data.error || res.statusText) + dbg, true);
+          console.error("admin_delete failed", { status: res.status, statusText: res.statusText, data });
+          return false;
+        }
+
+        setStatus(`삭제 완료 ✅ (DB:${data.db_deleted} / 파일:${data.storage_removed||0})`);
+        await listPhotos();
+        return true;
+      }catch(err){
+        setStatus("삭제 요청 실패: " + (err?.message || String(err)), true);
+        console.error(err);
+        return false;
+      }
+    }
+
+    document.addEventListener("click", async (e)=>{
+      const btn = e.target.closest("button[data-action]");
+      if(!btn) return;
+
+      const action = btn.dataset.action;
+
+      if(action === "copy"){
+        try{ await navigator.clipboard.writeText(btn.dataset.url); setStatus("링크를 복사했어!"); }
+        catch{ setStatus("복사 실패(브라우저 권한 문제)", true); }
+        return;
+      }
+
+      if(action === "open"){
+        window.open(btn.dataset.url, "_blank", "noopener");
+        return;
+      }
+
+      if(action === "delete"){
+        console.log("삭제 버튼 눌림 dataset:", { id: btn.dataset.id, path: btn.dataset.path });
+        const ok = await adminDelete(btn.dataset.id, btn.dataset.path);
+        if(ok){ btn.closest(".card")?.remove(); }
+        return;
+      }
+    });
+
+    $("uploadBtn").addEventListener("click", upload);
+    $("refreshBtn").addEventListener("click", listPhotos);
+
+    listPhotos();
+  </script>
+</body>
+</html>
