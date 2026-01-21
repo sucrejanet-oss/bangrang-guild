@@ -270,6 +270,11 @@ section.card h2{
       gap:12px;
     }
 
+
+    /* Make photo board span full row on desktop to remove empty space */
+    @media (min-width: 901px){
+      #photos{grid-column: 1 / -1;}
+    }
     @media (max-width: 900px){
       .hero{grid-template-columns:1fr}
       .grid{grid-template-columns:1fr}
@@ -654,17 +659,17 @@ section.card h2{
       stateEl.style.display = "none";
       listEl.style.display = "grid";
       listEl.innerHTML = list.slice(0,3).map(item=>{
-        const cat = item.category ? `<span class="tag tip">${escapeHtml(item.category)}</span>` : `<span class="tag tip">꿀팁</span>`;
-        const chips = (item.tags||[]).slice(0,4).map(t=>`<span class="chip" style="padding:4px 8px">${escapeHtml(t)}</span>`).join("");
+        const tags = (item.tags||[]).filter(Boolean);
+        const mainBadges = (tags.length ? tags.slice(0,2) : (item.category ? [item.category] : []))
+          .map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join("");
         return `
           <div class="item">
             <div class="itemTop">
               <div style="width:100%">
                 <p class="title">${escapeHtml(item.title)}</p>
                 <div class="meta" style="margin-top:8px">
-                  ${cat}
+                  ${mainBadges}
                   ${item.date ? `<span>📅 ${escapeHtml(item.date)}</span>` : ``}
-                  ${chips}
                 </div>
               </div>
             </div>
