@@ -283,7 +283,66 @@ section.card h2{
       .photoGrid{grid-template-columns: repeat(2, 1fr)}
 
     }
-  </style>
+  
+/* ===== 통합 텍스트 링크 버튼 (꿀팁/사진 "바로가기") ===== */
+.linkRow{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:12px;
+}
+.textLinkBtn{
+  display:inline-block;
+  font-size:13px;
+  font-weight:750;
+  color:var(--muted);
+  padding:6px 2px;
+  position:relative;
+  text-decoration:none;
+  transition: color .2s ease, transform .2s ease;
+  overflow:hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.textLinkBtn::after{
+  content:"";
+  position:absolute;
+  left:0;
+  bottom:-2px;
+  width:0%;
+  height:1px;
+  background:var(--brand);
+  transition: width .2s ease;
+}
+/* ✨ shimmer (hover/focus) */
+.textLinkBtn::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:-130%;
+  width:130%;
+  height:100%;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,.55), transparent);
+  transition: left .45s ease;
+  pointer-events:none;
+}
+.textLinkBtn:hover,
+.textLinkBtn:focus-visible{
+  color:var(--text);
+  transform: translateX(2px);
+}
+.textLinkBtn:hover::after,
+.textLinkBtn:focus-visible::after{
+  width:100%;
+}
+.textLinkBtn:hover::before,
+.textLinkBtn:focus-visible::before{
+  left:130%;
+}
+/* 모바일: 가운데 / 데스크탑: 오른쪽 */
+@media (max-width: 900px){
+  .linkRow{justify-content:center;}
+}
+
+</style>
 </head>
 <body>
   <header class="topbar">
@@ -375,8 +434,8 @@ section.card h2{
         <div id="tipState" class="sub" style="margin-top:10px;">불러오는 중...</div>
         <div class="list" id="tipPreview" style="margin-top:14px; display:none;"></div>
 
-        <div class="row" style="justify-content:flex-end; margin-top:12px;">
-          <a class="btn primary ribbon" href="/tips.html"><span class="emoji">🎮</span> 꿀팁게시판 바로가기</a>
+        <div class="linkRow">
+          <a class="textLinkBtn" href="/tips.html">꿀팁게시판 바로가기</a>
         </div>
       </section>
 
@@ -388,8 +447,8 @@ section.card h2{
         <div id="photoState" class="sub" style="margin-top:10px;">불러오는 중...</div>
         <div id="photoPreview" class="photoGrid" style="margin-top:14px; display:none;"></div>
 
-        <div class="row" style="justify-content:flex-end; margin-top:12px;">
-          <a class="btn primary ribbon" href="/photos.html"><span class="emoji">📷</span> 사진게시판 바로가기</a>
+        <div class="linkRow">
+          <a class="textLinkBtn" href="/photos.html">사진게시판 바로가기</a>
         </div>
       </section>
 
