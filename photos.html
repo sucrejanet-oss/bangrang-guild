@@ -602,7 +602,7 @@
     }
     function getDisplayDate(row){
       const postDate = getPostDateFromRow(row);
-      return postDate ? fmtYYMMDD(postDate) : fmtCreatedAt(row.created_at);
+      return postDate ? fmtYYMMDD(postDate) : "";
     }
 
     // Modal state
@@ -716,23 +716,18 @@ function renderPager(){
 }
 
 async function fetchRowsWithBestOrder(from, to){
-  // 최신글이 안 뜨는 문제를 줄이기 위해:
-  // 1) 날짜 컬럼(post_date/date/taken_at/event_date...)로 정렬 시도
-  // 2) 없으면 created_at 정렬로 fallback
-  const orderCandidates = ["post_date","date","taken_at","event_date","photo_date","created_at"];
+  // ✅ 지정한 날짜(post_date) 기준으로만 정렬 (같은 날짜는 created_at으로 보조정렬)
+  //    ※ post_date 컬럼이 DB에 있어야 합니다.
+  const q = sb
+    .from(TABLE)
+    .select("*")
+    .order("post_date", { ascending: false })
+    .order("created_at", { ascending: false })
+    .range(from, to);
 
-  for(const col of orderCandidates){
-    const q = sb.from(TABLE).select("*").order(col, { ascending:false }).range(from, to);
-    const { data, error } = await q;
-    if(!error) return { data, used: col };
-    const msg = String(error.message || "");
-    // 컬럼 없음/정렬 불가인 경우만 다음 후보로 넘어감
-    const looksLikeColumnIssue = msg.includes("column") || msg.includes("not found") || msg.includes("schema");
-    if(!looksLikeColumnIssue){
-      return { data: null, error };
-    }
-  }
-  return { data: null, error: { message: "정렬 가능한 컬럼을 찾지 못했어요." } };
+  const { data, error } = await q;
+  if(error) return { data: null, error };
+  return { data, used: "post_date" };
 }
 
 async function listPhotos(page=1){
@@ -879,6 +874,7 @@ async function insertPostSafe(payload){
       // Validation
       let hasErr = false;
       if(!title){ setError("fTitle","hTitle","제목을 입력해줘!"); hasErr = true; }
+      if(!post_date){ setError("fDate","hDate","날짜를 선택해줘!"); hasErr = true; }
       if(!file){ setError("fFile","hFile","사진 파일을 선택해줘!"); hasErr = true; }
       if(file && file.size > 8 * 1024 * 1024){ setError("fFile","hFile","파일이 너무 커요. 8MB 이하로 올려줘!"); hasErr = true; }
       if(hasErr){ setStatus("입력값을 확인해줘!", true); return; }
