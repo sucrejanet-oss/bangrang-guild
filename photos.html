@@ -177,25 +177,7 @@
       100%{transform:scale(1);opacity:1}
     }
 
-    /* Preview */
-    .filewrap{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end}
-    @media (max-width:980px){.filewrap{grid-template-columns:1fr}}
-    .preview{
-      width:var(--h);
-      height:var(--h);
-      border-radius:14px;
-      border:1px solid var(--line);
-      background: linear-gradient(135deg, rgba(244,143,177,.12), rgba(179,157,219,.10));
-      overflow:hidden;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      color:rgba(31,31,36,.55);
-      font-size:12px;
-    }
-    .preview img{width:100%;height:100%;object-fit:cover;display:block}
-
-    /* Grid list */
+        /* Grid list */
     .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
     @media (max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
     @media (max-width:560px){.grid{grid-template-columns:1fr}}
@@ -300,6 +282,76 @@
       animation: spin 0.75s linear infinite;
     }
     @keyframes spin{ to { transform: rotate(360deg); } }
+
+    /* Toast */
+    .toast-host{
+      position:fixed;
+      left:50%;
+      bottom:18px;
+      transform:translateX(-50%);
+      z-index: 10000;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      pointer-events:none;
+      width:min(520px, calc(100% - 24px));
+    }
+    .toast{
+      pointer-events:none;
+      background: rgba(255,255,255,.92);
+      border:1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.14);
+      padding: 12px 14px;
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      backdrop-filter: blur(10px);
+      opacity:0;
+      transform: translateY(8px);
+      animation: toastIn .22s ease forwards;
+    }
+    .toast .icon{
+      width:26px;height:26px;border-radius:999px;
+      display:flex;align-items:center;justify-content:center;
+      background: rgba(244,143,177,.16);
+      border:1px solid rgba(244,143,177,.35);
+      flex:0 0 auto;
+      font-weight:900;
+    }
+    .toast.ok .icon{ background: rgba(46,125,50,.12); border-color: rgba(46,125,50,.25); color: var(--ok); }
+    .toast.err .icon{ background: rgba(229,57,53,.12); border-color: rgba(229,57,53,.25); color: var(--error); }
+    .toast .msg{ font-size: 14px; line-height: 1.35; color: rgba(31,31,36,.82); padding-top:2px;}
+    .toast.out{ animation: toastOut .22s ease forwards; }
+    @keyframes toastIn{ to{ opacity:1; transform: translateY(0);} }
+    @keyframes toastOut{ to{ opacity:0; transform: translateY(8px);} }
+
+    /* Modal nav arrows */
+    .navbtn{
+      position:absolute;
+      top:50%;
+      transform: translateY(-50%);
+      width:42px; height:42px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.35);
+      background: rgba(0,0,0,.26);
+      color: rgba(255,255,255,.92);
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size: 20px;
+      font-weight: 900;
+      transition: background .15s ease, transform .06s ease, opacity .15s ease;
+      backdrop-filter: blur(6px);
+      z-index: 3;
+    }
+    .navbtn:hover{ background: rgba(244,143,177,.26); }
+    .navbtn:active{ transform: translateY(-50%) translateY(1px); }
+    .navbtn:disabled{ opacity:.35; cursor:not-allowed; }
+    .navbtn.prev{ left: 12px; }
+    .navbtn.next{ right: 12px; }
+
   </style>
 </head>
 
@@ -357,16 +409,10 @@
           <div class="hint" id="hDate"></div>
         </div>
 
-        <div class="filewrap">
-          <div class="field file" id="fFile">
-            <input id="file" type="file" accept="image/*" />
-            <label>사진 파일</label>
-            <div class="hint" id="hFile"></div>
-          </div>
-          <div class="preview" id="previewBox" title="미리보기">
-            <span id="previewHint">미리보기</span>
-            <img id="previewImg" alt="" style="display:none" />
-          </div>
+        <div class="field file" id="fFile">
+          <input id="file" type="file" accept="image/*" />
+          <label>사진 파일</label>
+          <div class="hint" id="hFile"></div>
         </div>
       </div>
 
@@ -401,7 +447,11 @@
     <div class="modal-wrap">
       <button class="xbtn" id="modalCloseBtn" type="button">✕</button>
       <div class="modal" role="dialog" aria-modal="true" aria-label="사진 크게 보기">
-        <div class="modal-media"><img id="modalImg" alt=""></div>
+        <div class="modal-media" style="position:relative">
+          <button class="navbtn prev" id="modalPrevBtn" type="button" aria-label="이전 사진">‹</button>
+          <button class="navbtn next" id="modalNextBtn" type="button" aria-label="다음 사진">›</button>
+          <img id="modalImg" alt="">
+        </div>
         <div class="modal-side">
           <h2 class="modal-title" id="modalTitle"></h2>
           <div class="modal-meta" id="modalMeta"></div>
@@ -432,6 +482,20 @@
       statusEl.className = "notice" + (isError ? " danger" : "");
     }
 
+    // Toast
+    function toast(msg, type="ok"){
+      const host = $("toastHost");
+      if(!host) return;
+      const t = document.createElement("div");
+      t.className = `toast ${type === "err" ? "err" : "ok"}`;
+      t.innerHTML = `<div class="icon">${type === "err" ? "!" : "✓"}</div><div class="msg">${escapeHtml(msg)}</div>`;
+      host.appendChild(t);
+      const ttl = type === "err" ? 2600 : 2200;
+      setTimeout(()=>{ t.classList.add("out"); }, ttl);
+      setTimeout(()=>{ t.remove(); }, ttl + 260);
+    }
+
+
     function escapeHtml(s){
       return String(s||"")
         .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
@@ -455,9 +519,7 @@
         const yy = String(d.getFullYear()).slice(-2);
         const mm = String(d.getMonth()+1).padStart(2,"0");
         const dd = String(d.getDate()).padStart(2,"0");
-        const hh = String(d.getHours()).padStart(2,"0");
-        const mi = String(d.getMinutes()).padStart(2,"0");
-        return `${yy}/${mm}/${dd} ${hh}:${mi}`;
+        return `${yy}/${mm}/${dd}`;
       }catch(e){ return ""; }
     }
 
@@ -514,23 +576,6 @@
       }
     }
 
-    // Preview
-    $("file").addEventListener("change", ()=>{
-      const file = $("file").files?.[0];
-      const img = $("previewImg");
-      const hint = $("previewHint");
-      if(!file){
-        img.style.display = "none";
-        img.src = "";
-        hint.style.display = "block";
-        return;
-      }
-      const url = URL.createObjectURL(file);
-      img.src = url;
-      img.style.display = "block";
-      hint.style.display = "none";
-    });
-
     function getStoragePathFromRow(row){
       return row.image_path || row.path || row.imagePath || row.image || row.file_path || "";
     }
@@ -549,6 +594,8 @@
     }
 
     // Modal state
+    let modalItems = []; // current list order
+    let currentIndex = -1;
     let currentModal = { id:null, path:null, url:null, title:"", nickname:"", desc:"", dateText:"" };
 
     function openModal(payload){
@@ -565,7 +612,28 @@
       $("modalBackdrop").style.display = "flex";
       $("modalBackdrop").setAttribute("aria-hidden", "false");
       $("modalDeleteBtn").style.display = IS_ADMIN_PAGE ? "inline-flex" : "none";
+      syncModalNav();
     }
+
+    function syncModalNav(){
+      const prev = $("modalPrevBtn");
+      const next = $("modalNextBtn");
+      if(!prev || !next) return;
+      const hasMany = modalItems.length > 1;
+      prev.style.display = hasMany ? "flex" : "none";
+      next.style.display = hasMany ? "flex" : "none";
+      prev.disabled = !(hasMany && currentIndex > 0);
+      next.disabled = !(hasMany && currentIndex < modalItems.length - 1);
+    }
+
+    function openModalByIndex(idx){
+      if(!Number.isFinite(idx)) return;
+      if(idx < 0 || idx >= modalItems.length) return;
+      currentIndex = idx;
+      openModal(modalItems[idx]);
+      syncModalNav();
+    }
+
     function closeModal(){
       $("modalBackdrop").style.display = "none";
       $("modalBackdrop").setAttribute("aria-hidden", "true");
@@ -573,7 +641,13 @@
     }
     $("modalBackdrop").addEventListener("click", (e)=>{ if(e.target === $("modalBackdrop")) closeModal(); });
     $("modalCloseBtn").addEventListener("click", closeModal);
-    document.addEventListener("keydown", (e)=>{ if(e.key === "Escape") closeModal(); });
+    document.addEventListener("keydown", (e)=>{
+      const isOpen = $("modalBackdrop").getAttribute("aria-hidden") === "false";
+      if(e.key === "Escape"){ if(isOpen) closeModal(); return; }
+      if(!isOpen) return;
+      if(e.key === "ArrowLeft") { e.preventDefault(); openModalByIndex(currentIndex - 1); }
+      if(e.key === "ArrowRight"){ e.preventDefault(); openModalByIndex(currentIndex + 1); }
+    });
 
     $("modalCopyBtn").addEventListener("click", async ()=>{
       try{ await navigator.clipboard.writeText(currentModal.url || ""); setStatus("링크를 복사했어!"); }
@@ -582,6 +656,11 @@
     $("modalOpenBtn").addEventListener("click", ()=>{
       if(currentModal.url) window.open(currentModal.url, "_blank", "noopener");
     });
+
+
+    $("modalPrevBtn").addEventListener("click", ()=> openModalByIndex(currentIndex - 1));
+    $("modalNextBtn").addEventListener("click", ()=> openModalByIndex(currentIndex + 1));
+
 
     async function listPhotos(){
       setStatus("");
@@ -606,6 +685,8 @@
         return;
       }
 
+      modalItems = [];
+      let i = 0;
       for(const row of data){
         const storagePath = getStoragePathFromRow(row);
         const { data: pub } = sb.storage.from(BUCKET).getPublicUrl(storagePath || "");
@@ -616,6 +697,16 @@
         const nickname = row.nickname || "익명";
         const dateText = getDisplayDate(row);
 
+        modalItems.push({
+          id: String(row.id),
+          path: storagePath,
+          url: imgUrl,
+          title,
+          nickname,
+          desc,
+          dateText,
+        });
+
         const adminDeleteBtnHtml = IS_ADMIN_PAGE
           ? `<button class="btn secondary" type="button" data-action="delete" data-id="${row.id}" data-path="${storagePath}">삭제(운영진)</button>`
           : ``;
@@ -625,6 +716,7 @@
         card.innerHTML = `
           <div class="thumb" role="button" tabindex="0"
                data-action="view"
+               data-index="${i}"
                data-id="${row.id}"
                data-path="${storagePath}"
                data-url="${imgUrl}"
@@ -644,27 +736,46 @@
           </div>
         `;
         $("list").appendChild(card);
+        i++;
       }
     }
 
-    // Safe insert: try columns, fallback to caption concat
+    // Smart insert: try common column name variants (post_date vs date vs taken_at...), then fallback
     async function insertPostSafe(payload){
-      const { error: err1 } = await sb.from(TABLE).insert([payload]);
-      if(!err1) return { ok:true };
+      const tries = [
+        payload,
+        { ...payload, date: payload.post_date, post_date: undefined },
+        { ...payload, taken_at: payload.post_date, post_date: undefined },
+        { ...payload, event_date: payload.post_date, post_date: undefined },
+      ];
 
-      const msg = String(err1.message || "");
-      const looksLikeColumnIssue = msg.includes("column") || msg.includes("schema") || msg.includes("not found");
-
-      if(looksLikeColumnIssue){
-        const fallback = {
-          nickname: payload.nickname,
-          caption: payload.description ? `[${payload.title}] ${payload.description}` : (payload.title || "사진"),
-          image_path: payload.image_path,
-        };
-        const { error: err2 } = await sb.from(TABLE).insert([fallback]);
-        if(!err2){
-          return { ok:true, fallback:true, warn:"DB에 title/description/post_date 컬럼이 없어서 caption에 합쳐 저장했어요." };
+      for(const attempt of tries){
+        const cleaned = {};
+        for(const [k,v] of Object.entries(attempt)){
+          if(v === undefined) continue;
+          cleaned[k] = v;
         }
+        const { error } = await sb.from(TABLE).insert([cleaned]);
+        if(!error) return { ok:true };
+
+        const msg = String(error.message || "");
+        const looksLikeColumnIssue = msg.includes("column") || msg.includes("schema") || msg.includes("not found");
+        if(!looksLikeColumnIssue) return { ok:false, error };
+        // if it's a column issue, keep trying next variant
+      }
+
+      // last-resort fallback: keep at least image + nickname + caption
+      const fallback = {
+        nickname: payload.nickname,
+        caption: payload.description ? `[${payload.title}] ${payload.description}` : (payload.title || "사진"),
+        image_path: payload.image_path,
+      };
+      const { error: err2 } = await sb.from(TABLE).insert([fallback]);
+      if(!err2){
+        return { ok:true, fallback:true, warn:"DB 컬럼명이 달라 title/description/date가 저장되지 않았을 수 있어요." };
+      }
+      return { ok:false, error: err2 };
+    }
         return { ok:false, error: err2 };
       }
       return { ok:false, error: err1 };
@@ -717,7 +828,8 @@
       }
 
       setLoading(false);
-      setStatus(ins.fallback ? "업로드 완료! 💖 (주의: DB 컬럼이 없어 설명에 합쳐 저장했어)" : "업로드 완료! 💖");
+      setStatus("");
+      toast(ins.fallback ? "업로드 완료! 💖 (주의: DB 컬럼명이 달라 일부 정보가 설명에 합쳐 저장됐을 수 있어요)" : "업로드 완료! 💖", ins.fallback ? "err" : "ok");
 
       // success animation
       pulseSuccess("fTitle");
@@ -733,11 +845,6 @@
       // 닉네임은 유지하는 게 편해서 유지 (원하면 비우기)
       // $("nickname").value = "";
       $("postDate").value = "";
-
-      // reset preview
-      $("previewImg").style.display = "none";
-      $("previewImg").src = "";
-      $("previewHint").style.display = "block";
 
       await listPhotos();
     }
@@ -777,7 +884,8 @@
           return false;
         }
 
-        setStatus(`삭제 완료 ✅ (DB:${data.db_deleted} / 파일:${data.storage_removed||0})`);
+        setStatus("");
+        toast(`삭제 완료 ✅ (DB:${data.db_deleted} / 파일:${data.storage_removed||0})`);
         await listPhotos();
         return true;
       }catch(err){
@@ -801,7 +909,7 @@
       const action = el.dataset.action;
 
       if(action === "copy"){
-        try{ await navigator.clipboard.writeText(el.dataset.url); setStatus("링크를 복사했어!"); }
+        try{ await navigator.clipboard.writeText(el.dataset.url); toast("링크를 복사했어!"); }
         catch{ setStatus("복사 실패(브라우저 권한 문제)", true); }
         return;
       }
@@ -810,15 +918,19 @@
         return;
       }
       if(action === "view"){
-        openModal({
-          id: el.dataset.id,
-          path: el.dataset.path,
-          url: el.dataset.url,
-          title: el.dataset.title || "사진",
-          nickname: el.dataset.nickname || "익명",
-          desc: el.dataset.desc || "",
-          dateText: el.dataset.date || ""
-        });
+        const idx = Number(el.dataset.index);
+        if(Number.isFinite(idx)) openModalByIndex(idx);
+        else{
+          openModal({
+            id: el.dataset.id,
+            path: el.dataset.path,
+            url: el.dataset.url,
+            title: el.dataset.title || "사진",
+            nickname: el.dataset.nickname || "익명",
+            desc: el.dataset.desc || "",
+            dateText: el.dataset.date || ""
+          });
+        }
         return;
       }
       if(action === "delete"){
@@ -841,5 +953,8 @@
     // initial
     listPhotos();
   </script>
+
+  <!-- Toast -->
+  <div class="toast-host" id="toastHost" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
