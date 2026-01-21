@@ -22,13 +22,11 @@
     .btn.secondary{border-color:rgba(0,0,0,.12);background:rgba(255,255,255,.65)}
     .field{display:grid;gap:6px;margin-top:10px}
     label{font-size:12px;color:var(--sub)}
-    input,textarea{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.85);font:inherit}
-    textarea{min-height:92px;resize:vertical}
+    input{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.85);font:inherit}
     .thumb{width:100%;aspect-ratio:1/1;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:linear-gradient(135deg, rgba(244,143,177,.12), rgba(179,157,219,.10))}
     .thumb img{width:100%;height:100%;object-fit:cover;display:block}
     .meta{display:flex;justify-content:space-between;gap:10px;margin-top:10px;color:var(--sub);font-size:12px}
     .title{margin:8px 0 0;font-weight:800}
-    .caption{margin:6px 0 0;color:var(--sub);white-space:pre-wrap}
     .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
     .notice{font-size:13px;color:var(--sub)}
     .danger{color:#c62828}
@@ -98,12 +96,15 @@
     </section>
   </main>
 
+  <!-- Supabase 라이브러리 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- 너가 만든 설정 파일(루트에 있어야 함): /supabase_config.js -->
   <script src="/supabase_config.js"></script>
+
   <script>
-    const supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    // ✅ "supabase"라는 변수명 자체를 안 씀(중복 선언 에러 방지)
     const BUCKET = "bangrang-photos";
-    const TABLE = "photo_posts";
+    const TABLE  = "photo_posts";
 
     const $ = (id) => document.getElementById(id);
     const statusEl = $("status");
@@ -119,13 +120,25 @@
       }catch(e){ return ""; }
     }
     function escapeHtml(s){
-      return String(s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
+      return String(s||"")
+        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;").replaceAll("'","&#39;");
     }
+
+    // ---- 설정 파일 체크 ----
+    if(!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY){
+      setStatus("설정 누락: supabase_config.js에 SUPABASE_URL / SUPABASE_ANON_KEY를 넣어줘!", true);
+      console.error("Missing SUPABASE config", window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    }
+
+    // ---- 클라이언트 생성 (sb) ----
+    const sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
     async function listPhotos(){
       setStatus("");
       $("list").innerHTML = "";
-      const { data, error } = await supabase
+
+      const { data, error } = await sb
         .from(TABLE)
         .select("*")
         .order("created_at", { ascending:false })
@@ -144,7 +157,7 @@
       }
 
       for(const row of data){
-        const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(row.image_path);
+        const { data: pub } = sb.storage.from(BUCKET).getPublicUrl(row.image_path);
         const imgUrl = pub.publicUrl;
 
         const card = document.createElement("div");
@@ -165,8 +178,8 @@
 
     async function upload(){
       const nickname = $("nickname").value.trim() || "익명";
-      const caption = $("caption").value.trim() || "사진";
-      const file = $("file").files?.[0];
+      const caption  = $("caption").value.trim() || "사진";
+      const file     = $("file").files?.[0];
 
       if(!file){ setStatus("사진 파일을 선택해줘!", true); return; }
       if(file.size > 8 * 1024 * 1024){ setStatus("파일이 너무 커요. 8MB 이하로 올려줘!", true); return; }
@@ -177,16 +190,16 @@
       const safeExt = ["jpg","jpeg","png","webp","gif"].includes(ext) ? ext : "jpg";
       const path = `${Date.now()}_${Math.random().toString(16).slice(2)}.${safeExt}`;
 
-      const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, {
+      const { error: upErr } = await sb.storage.from(BUCKET).upload(path, file, {
         cacheControl: "3600",
         upsert: false,
         contentType: file.type || "image/jpeg",
       });
       if(upErr){ setStatus("업로드 실패: " + upErr.message, true); return; }
 
-      const { error: dbErr } = await supabase.from(TABLE).insert([{ nickname, caption, image_path: path }]);
+      const { error: dbErr } = await sb.from(TABLE).insert([{ nickname, caption, image_path: path }]);
       if(dbErr){
-        await supabase.storage.from(BUCKET).remove([path]);
+        await sb.storage.from(BUCKET).remove([path]);
         setStatus("저장 실패: " + dbErr.message, true);
         return;
       }
@@ -217,6 +230,7 @@
     document.addEventListener("click", async (e)=>{
       const btn = e.target.closest("button[data-action]");
       if(!btn) return;
+
       const action = btn.dataset.action;
 
       if(action === "copy"){
@@ -234,6 +248,7 @@
     $("uploadBtn").addEventListener("click", upload);
     $("refreshBtn").addEventListener("click", listPhotos);
 
+    // 첫 로드
     listPhotos();
   </script>
 </body>
