@@ -262,11 +262,20 @@ section.card h2{
     }
 
 
+    
+    /* Photo preview grid: 4 on desktop, 2 on mobile */
+    .photoGrid{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:12px;
+    }
+
     @media (max-width: 900px){
       .hero{grid-template-columns:1fr}
       .grid{grid-template-columns:1fr}
       nav{justify-content:flex-start}
       .twoCol{grid-template-columns:1fr}
+      .photoGrid{grid-template-columns: repeat(2, 1fr)}
 
     }
   </style>
@@ -353,33 +362,26 @@ section.card h2{
         <div class="list" id="noticeList"></div>
       </section>
 
-      <!-- 게임 꿀팁 -->
+      <!-- 🧠 꿀팁 게시판 (노션 연동) -->
       <section class="card" id="tips">
-        <h2><span class="emoji">🎮</span> 게임 꿀팁</h2>
-        <p class="sub">길드원들이 유용하게 사용한 팁을 카테고리별로 모아놨어요.</p>
+        <h2><span class="emoji">🎮</span> 꿀팁 게시판</h2>
+        <p class="sub">운영진이 노션에 올린 꿀팁을 여기서 바로 확인할 수 있어요. ✨ 최신 꿀팁 3개 미리보기!</p>
 
-        <div class="toolbar">
-          <input class="input" id="tipSearch" placeholder="검색: 예) 생활, 데코, 레이드, 어비스, 캐릭터 등…" />
+        <div id="tipState" class="sub" style="margin-top:10px;">불러오는 중...</div>
+        <div class="list" id="tipPreview" style="margin-top:14px; display:none;"></div>
+
+        <div class="row" style="justify-content:flex-end; margin-top:12px;">
+          <a class="btn primary ribbon" href="/tips.html"><span class="emoji">🎮</span> 꿀팁게시판 바로가기</a>
         </div>
-
-        <div class="toolbar" id="tipFilters">
-          <span class="pill active" data-filter="all">전체</span>
-          <span class="pill" data-filter="생활">생활</span>
-          <span class="pill" data-filter="데코">데코</span>
-          <span class="pill" data-filter="캐릭터">캐릭터</span>
-          <span class="pill" data-filter="레이드">레이드</span>
-          <span class="pill" data-filter="어비스">어비스</span>
-        </div>
-
-        <div class="list" id="tipList"></div>
       </section>
+
       <!-- 📷 사진 게시판 (노션 연동) -->
       <section class="card" id="photos">
         <h2><span class="emoji">📷</span> 사진 게시판</h2>
-        <p class="sub">길드원들의 스크린샷/추억을 모아봐요. ✨ 최근 사진 6장 미리보기!</p>
+        <p class="sub">길드원들의 스크린샷/추억을 모아봐요. ✨ 최근 사진 4장 미리보기!</p>
 
         <div id="photoState" class="sub" style="margin-top:10px;">불러오는 중...</div>
-        <div id="photoPreview" class="grid" style="margin-top:14px; display:none;"></div>
+        <div id="photoPreview" class="photoGrid" style="margin-top:14px; display:none;"></div>
 
         <div class="row" style="justify-content:flex-end; margin-top:12px;">
           <a class="btn primary ribbon" href="/photos.html"><span class="emoji">📷</span> 사진게시판 바로가기</a>
@@ -488,21 +490,65 @@ section.card h2{
     } catch(e){ return fallback; }
   }
 
+  
   function mapPage(p){
     const props = p.properties || {};
-    const title = (safe(props,"제목.title",[]) || []).map(x=>x.plain_text).join("") || "(제목 없음)";
-    const date = safe(props,"작성일.date.start") || safe(props,"Date.date.start") || "";
-    const icon = p.icon && p.icon.type === "emoji" ? p.icon.emoji : "";
-    // 카테고리(Select) or multi_select 첫번째를 대표로 사용
-    const category = safe(props,"카테고리.select.name") || safe(props,"카테고리.multi_select.0.name") || "";
-    const body =
-      (safe(props,"내용.rich_text",[]) || []).map(x=>x.plain_text).join("")
-      || (safe(props,"설명.rich_text",[])||[]).map(x=>x.plain_text).join("")
+
+    // ---- title (제목/Title/이름 등) ----
+    const titleProp =
+      props["제목"]?.title ?? props["Title"]?.title ?? props["이름"]?.title ?? props["Name"]?.title ?? [];
+    const title = (titleProp || []).map(x=>x.plain_text).join("") || "(제목 없음)";
+
+    // ---- date (작성일/Date/날짜 등) ----
+    const date =
+      props["작성일"]?.date?.start
+      || props["Date"]?.date?.start
+      || props["날짜"]?.date?.start
+      || props["작성 날짜"]?.date?.start
       || "";
-    // 태그(다중선택)도 있으면 가져오기 (선택사항)
-    const tags = (safe(props,"태그.multi_select",[]) || []).map(x=>x.name).filter(Boolean);
+
+    // ---- icon (emoji only) ----
+    const icon = p.icon && p.icon.type === "emoji" ? p.icon.emoji : "";
+
+    // ---- category (카테고리/Category/분류, select or multi_select first) ----
+    const category =
+      props["카테고리"]?.select?.name
+      || props["Category"]?.select?.name
+      || props["분류"]?.select?.name
+      || props["카테고리"]?.multi_select?.[0]?.name
+      || props["Category"]?.multi_select?.[0]?.name
+      || props["분류"]?.multi_select?.[0]?.name
+      || "";
+
+    // ---- body (내용/본문/설명/Description) ----
+    const body =
+      (props["내용"]?.rich_text || props["본문"]?.rich_text || props["설명"]?.rich_text || props["Description"]?.rich_text || [])
+        .map(x=>x.plain_text).join("")
+      || "";
+
+    // ---- tags (태그/Tags/해시태그, multi_select or select) ----
+    const tagFromSelect =
+      props["태그"]?.select?.name
+      || props["Tags"]?.select?.name
+      || props["해시태그"]?.select?.name
+      || props["tag"]?.select?.name
+      || "";
+
+    const tagList =
+      props["태그"]?.multi_select
+      || props["Tags"]?.multi_select
+      || props["해시태그"]?.multi_select
+      || props["tag"]?.multi_select
+      || [];
+
+    const tags = [
+      ...(tagFromSelect ? [tagFromSelect] : []),
+      ...((tagList || []).map(x=>x.name).filter(Boolean))
+    ];
+
     return { title, date, icon, category, body, tags };
   }
+
 
   async function fetchList(type){
     const res = await fetch(`/.netlify/functions/notion?type=${type}`, { cache: "no-store" });
@@ -584,118 +630,57 @@ section.card h2{
     }
   }
 
-  // ---------- 꿀팁: Notion 카테고리(생활/데코/캐릭터/레이드/어비스) 자동 반영 + 펼침 ----------
-  let TIP_ALL = [];
-  let tipState = { filter:"all", q:"" };
+  
+  // ---------- 꿀팁 미리보기: Notion에서 최신 3개 ----------
+  async function renderTipPreview(){
+    const stateEl = $("tipState");
+    const listEl  = $("tipPreview");
+    if(!stateEl || !listEl) return;
 
-  function renderTipList(){
-    const el = $("tipList");
-    if(!el) return;
-
-    const qq = (tipState.q||"").trim().toLowerCase();
-    const data = TIP_ALL.filter(item=>{
-      const okFilter = (tipState.filter==="all") ? true : item.category === tipState.filter;
-      if(!okFilter) return false;
-      if(!qq) return true;
-      const hay = (item.title + " " + (item.category||"") + " " + (item.tags||[]).join(" ") + " " + (item.body||"")).toLowerCase();
-      return hay.includes(qq);
-    });
-
-    if(data.length === 0){
-      el.innerHTML = `<div class="item"><p class="sub" style="margin:0">해당 조건의 꿀팁이 없어요.</p></div>`;
-      return;
-    }
-
-    el.innerHTML = data.slice(0,40).map(item=>{
-      const cat = item.category ? `<span class="tag tip">${escapeHtml(item.category)}</span>` : `<span class="tag tip">꿀팁</span>`;
-      const chips = (item.tags||[]).slice(0,4).map(t=>`<span class="chip" style="padding:4px 8px">${escapeHtml(t)}</span>`).join("");
-      return `
-        <div class="item">
-          <div class="itemTop">
-            <div style="width:100%">
-              <p class="title">${escapeHtml(item.title)}</p>
-              <div class="meta" style="margin-top:8px">
-                ${cat}
-                ${item.date ? `<span>📅 ${escapeHtml(item.date)}</span>` : ``}
-                ${chips}
-              </div>
-            </div>
-          </div>
-          <details>
-            <summary>내용 보기</summary>
-            <div class="content">${toParagraphs(item.body)}</div>
-          </details>
-        </div>
-      `;
-    }).join("");
-  }
-
-  function syncTipFilterUIFromNotion(){
-    // Notion에서 실제로 쓰는 카테고리가 바뀌어도 자동 반영 가능
-    const filterBar = $("tipFilters");
-    if(!filterBar) return;
-
-    const desiredOrder = ["생활","데코","캐릭터","레이드","어비스"];
-    const have = new Set(TIP_ALL.map(x=>x.category).filter(Boolean));
-
-    // 버튼 텍스트는 유지하되, Notion에 없는 카테고리는 비활성/숨김 처리
-    [...filterBar.querySelectorAll(".pill")].forEach(p=>{
-      const f = p.dataset.filter;
-      if(f === "all") return;
-      if(!have.has(f)){
-        p.style.display = "none";
-      }else{
-        p.style.display = "inline-flex";
-      }
-    });
-
-    // 혹시 Notion에서 새 카테고리가 생겼는데(예: "PVP") UI에 없으면 자동 추가
-    const existing = new Set([...filterBar.querySelectorAll(".pill")].map(p=>p.dataset.filter));
-    const extras = [...have].filter(x=> x !== "all" && !existing.has(x));
-
-    if(extras.length){
-      // extras는 끝에 붙이고, 디자인 동일
-      extras.forEach(x=>{
-        const span = document.createElement("span");
-        span.className = "pill";
-        span.dataset.filter = x;
-        span.textContent = x;
-        filterBar.appendChild(span);
-      });
-    }
-
-    // 원하는 순서대로 DOM 정렬(전체는 맨 앞)
-    const pills = [...filterBar.querySelectorAll(".pill")];
-    const map = new Map(pills.map(p=>[p.dataset.filter, p]));
-    filterBar.innerHTML = "";
-    filterBar.appendChild(map.get("all"));
-    desiredOrder.forEach(k=>{ if(map.get(k)) filterBar.appendChild(map.get(k)); });
-    // 나머지(추가된 카테고리)
-    pills.forEach(p=>{
-      const k = p.dataset.filter;
-      if(k==="all") return;
-      if(desiredOrder.includes(k)) return;
-      if(!filterBar.contains(p)) filterBar.appendChild(p);
-    });
-  }
-
-  async function renderTips(){
-    const el = $("tipList");
-    if(!el) return;
-
-    el.innerHTML = `<div class="item"><p class="sub" style="margin:0">불러오는 중...</p></div>`;
+    stateEl.style.display = "block";
+    listEl.style.display = "none";
+    stateEl.textContent = "불러오는 중...";
 
     try{
       const list = await fetchList("tips");
       list.sort((a,b)=> (b.date||"").localeCompare(a.date||""));
-      TIP_ALL = list;
 
-      syncTipFilterUIFromNotion();
-      renderTipList();
+      if(!list.length){
+        stateEl.textContent = "아직 등록된 꿀팁이 없어요. 첫 꿀팁 올려줘요 💖";
+        listEl.style.display = "none";
+        return;
+      }
+
+      stateEl.style.display = "none";
+      listEl.style.display = "grid";
+      listEl.innerHTML = list.slice(0,3).map(item=>{
+        const cat = item.category ? `<span class="tag tip">${escapeHtml(item.category)}</span>` : `<span class="tag tip">꿀팁</span>`;
+        const chips = (item.tags||[]).slice(0,4).map(t=>`<span class="chip" style="padding:4px 8px">${escapeHtml(t)}</span>`).join("");
+        return `
+          <div class="item">
+            <div class="itemTop">
+              <div style="width:100%">
+                <p class="title">${escapeHtml(item.title)}</p>
+                <div class="meta" style="margin-top:8px">
+                  ${cat}
+                  ${item.date ? `<span>📅 ${escapeHtml(item.date)}</span>` : ``}
+                  ${chips}
+                </div>
+              </div>
+            </div>
+            <details>
+              <summary>내용 보기</summary>
+              <div class="content">${toParagraphs(item.body)}</div>
+            </details>
+          </div>
+        `;
+      }).join("");
     }catch(e){
-      el.innerHTML = `<div class="item"><p class="sub" style="margin:0">꿀팁 불러오기 실패: ${escapeHtml(e.message || String(e))}</p></div>`;
+      stateEl.textContent = "꿀팁 불러오기 실패: " + (e?.message || String(e));
+      listEl.style.display = "none";
     }
   }
+
 
   // ---------- 사진 미리보기: Supabase 사진게시판에서 최근 6장 ----------
   async function renderPhotoPreview(){
@@ -721,7 +706,7 @@ section.card h2{
       .from(TABLE)
       .select("id, image_path, caption, nickname, created_at, taken_on")
       .order("created_at", { ascending:false })
-      .limit(6);
+      .limit(4);
 
     if(error){
       stateEl.textContent = "사진 불러오기 실패: " + error.message;
@@ -767,27 +752,6 @@ section.card h2{
     });
   }
 
-  // 꿀팁 필터 클릭 → 클라이언트에서 필터링
-  const tipFilters = $("tipFilters");
-  if(tipFilters){
-    tipFilters.addEventListener("click", (e)=>{
-      const pill = e.target.closest(".pill");
-      if(!pill) return;
-      [...tipFilters.querySelectorAll(".pill")].forEach(p=>p.classList.remove("active"));
-      pill.classList.add("active");
-      tipState.filter = pill.dataset.filter;
-      renderTipList();
-    });
-  }
-
-  const tipSearch = $("tipSearch");
-  if(tipSearch){
-    tipSearch.addEventListener("input", ()=>{
-      tipState.q = tipSearch.value;
-      renderTipList();
-    });
-  }
-
   // 초대 문구 복사 버튼(기존 유지)
   const copyBtn = $("copyInvite");
   if(copyBtn){
@@ -807,7 +771,7 @@ section.card h2{
 
   // ---------- start ----------
   renderNotices();
-  renderTips();
+  renderTipPreview();
   renderPhotoPreview();
   </script>
 
