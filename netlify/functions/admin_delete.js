@@ -61,7 +61,7 @@ exports.handler = async (event) => {
     catch { return json(400, { error: "Invalid JSON body", rawBody: event.body || "" }); }
 
     const token = body?.token;
-    const incomingId = body?.id;      // 프론트에서 넘어온 값(지금은 uuid처럼 보임)
+    const incomingId = body?.id;   // 지금은 uuid 형태
     const rawPath = body?.path;
 
     if (!token || token !== ADMIN_TOKEN) {
@@ -75,62 +75,28 @@ exports.handler = async (event) => {
     }
 
     const BUCKET = "bangrang-photos";
-    const TABLE = "photo_posts";
+    const TABLE  = "photo_posts";
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
       auth: { persistSession: false },
     });
 
-    const normalizedPath = normalizePath(rawPath, BUCKET);
+    // 0) 먼저 row 확인 (삭제 대상 존재 여부)
+    const { data: row, error: getErr } = await supabase
+      .from(TABLE)
+      .select("id,image_path")
+      .eq("id", incomingId)
+      .maybeSingle();
 
-    // ✅ 0) DB row 찾기: (1) id로 찾아보고, (2) 안 되면 uuid 계열 컬럼들로도 찾아봄
-    //    찾은 row의 "진짜 PK(id)" 값을 finalDeleteId로 사용한다.
-    let row = null;
-    let findMode = "id";
-
-    // 0-1) 우선 id로 조회 (일반적인 PK)
-    {
-      const { data, error } = await supabase
-        .from(TABLE)
-        .select("id,image_path")
-        .eq("id", incomingId)
-        .maybeSingle();
-
-      if (error) return json(500, { error: "DB lookup failed", details: error, debug: { step: "lookup_by_id" } });
-      row = data || null;
+    if (getErr) {
+      return json(500, { error: "DB lookup failed", details: getErr });
     }
-
-    // 0-2) 못 찾으면 uuid 가능성 컬럼들로 재시도
-    // (테이블에 따라 컬럼명이 다를 수 있어서 흔한 이름들을 순서대로 시도)
-    const altCols = ["uuid", "post_uuid", "post_id", "uid"];
-    if (!row) {
-      for (const col of altCols) {
-        const { data, error } = await supabase
-          .from(TABLE)
-          .select("id,image_path")
-          .eq(col, incomingId)
-          .maybeSingle();
-
-        // 컬럼이 없으면 에러가 날 수 있는데, 그건 그냥 다음 컬럼을 시도
-        if (error) {
-          // "column does not exist" 류는 무시하고 다음으로
-          continue;
-        }
-        if (data) {
-          row = data;
-          findMode = col;
-          break;
-        }
-      }
-    }
-
     if (!row) {
       return json(404, { error: "Post not found", debug: { incomingId } });
     }
 
-    const finalDeleteId = row.id; // ✅ DB에서 실제로 삭제할 PK
-
-    // ✅ 1) Storage 삭제 (DB 경로 우선)
+    // 1) Storage 삭제 (DB 경로 우선)
+    const normalizedPath = normalizePath(rawPath, BUCKET);
     const pathFromDb = row.image_path ? normalizePath(row.image_path, BUCKET) : "";
     const pathToDelete = pathFromDb || normalizedPath;
 
@@ -143,30 +109,53 @@ exports.handler = async (event) => {
       return json(500, {
         error: "Storage delete failed",
         details: delErr,
-        debug: { bucket: BUCKET, incomingId, findMode, finalDeleteId, rawPath, normalizedPath, pathFromDb, pathToDelete, delData },
+        debug: { incomingId, rawPath, normalizedPath, pathFromDb, pathToDelete, delData },
       });
     }
 
-    // ✅ 2) DB 삭제는 무조건 PK(id)로 진행
-    const { data: deletedRows, error: dbErr } = await supabase
+    // 2) DB 삭제 (✅ count로 확실하게 확인)
+    const { count, error: dbErr } = await supabase
       .from(TABLE)
-      .delete()
-      .eq("id", finalDeleteId)
-      .select("id");
+      .delete({ count: "exact" })     // ✅ 여기 중요
+      .eq("id", incomingId);
 
     if (dbErr) {
-      return json(500, { error: "DB delete failed", details: dbErr, debug: { finalDeleteId } });
+      return json(500, { error: "DB delete failed", details: dbErr, debug: { incomingId } });
     }
 
-    const db_deleted = Array.isArray(deletedRows) ? deletedRows.length : 0;
+    const db_deleted = typeof count === "number" ? count : 0;
     const storage_removed = Array.isArray(delData) ? delData.length : 0;
 
+    // 3) 삭제 0건이면: 진짜 남아있는지 다시 확인
     if (db_deleted === 0) {
-      return json(500, {
-        error: "DB delete returned 0 rows",
-        db_deleted,
+      const { data: stillThere, error: chkErr } = await supabase
+        .from(TABLE)
+        .select("id")
+        .eq("id", incomingId)
+        .maybeSingle();
+
+      if (chkErr) {
+        return json(500, { error: "DB recheck failed", details: chkErr, debug: { incomingId } });
+      }
+
+      if (stillThere) {
+        // ✅ 이 케이스가 지금 하람에게 발생한 핵심
+        return json(403, {
+          error: "DB delete blocked (permission/RLS likely)",
+          message:
+            "조회는 되는데 삭제가 0건이면, Netlify 환경변수의 SUPABASE_SERVICE_ROLE_KEY가 잘못됐거나(RLS/권한) 삭제 정책이 없어 막힌 경우가 많아요.",
+          debug: { incomingId, db_deleted, storage_removed },
+        });
+      }
+
+      // row가 안 보이면(=삭제됐는데 반환만 0으로 나온 경우) 성공 처리
+      return json(200, {
+        ok: true,
+        db_deleted: 1,
         storage_removed,
-        debug: { incomingId, findMode, finalDeleteId },
+        deleted_id: incomingId,
+        deleted_path: pathToDelete,
+        note: "Delete count was 0, but row is gone after recheck (treated as success).",
       });
     }
 
@@ -174,10 +163,10 @@ exports.handler = async (event) => {
       ok: true,
       db_deleted,
       storage_removed,
-      deleted_id: finalDeleteId,
+      deleted_id: incomingId,
       deleted_path: pathToDelete,
-      debug: { incomingId, findMode },
     });
+
   } catch (e) {
     return json(500, { error: "Server error", details: String(e) });
   }
