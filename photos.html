@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>방랑 길드 - 사진 게시판</title>
+
+  <!-- 폰트(로딩 실패에도 기본 폰트로 안전하게 대체) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#fff9fd;
+      --bg2:#fff3fb;
+      --card:#ffffff;
+      --line:rgba(15, 15, 20, .10);
+      --text:#1c1c22;
+      --muted:rgba(28,28,34,.72);
+      --brand:#ff6ea8;
+      --brand2:#a48cff;
+      --ok:#2e7d32;
+      --danger:#c62828;
+      --shadow:0 14px 38px rgba(0,0,0,.08);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:"Nunito","Noto Sans KR",system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,sans-serif;
+      background:
+        radial-gradient(1100px 520px at 8% -10%, rgba(255,110,168,.22), transparent 60%),
+        radial-gradient(1000px 520px at 92% 0%, rgba(164,140,255,.18), transparent 62%),
+        radial-gradient(900px 520px at 50% 110%, rgba(255,200,230,.26), transparent 55%),
+        linear-gradient(180deg, var(--bg2), var(--bg));
+      color:var(--text);
+    }
+    header{max-width:1120px;margin:0 auto;padding:28px 18px 10px}
+    main{max-width:1120px;margin:0 auto;padding:18px 18px 34px}
+
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+    .brand{display:flex;align-items:center;gap:10px}
+    .badge{
+      width:42px;height:42px;border-radius:14px;
+      display:grid;place-items:center;
+      background:linear-gradient(135deg, rgba(255,110,168,.22), rgba(164,140,255,.18));
+      border:1px solid rgba(255,110,168,.25);
+      box-shadow:0 10px 25px rgba(255,110,168,.10);
+      user-select:none;
+    }
+    h1{margin:0;font-size:22px;letter-spacing:-.2px}
+    .sub{margin:6px 0 0;color:var(--muted);font-size:13px}
+
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .card{
+      background:rgba(255,255,255,.86);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:14px;
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+    .divider{border:none;border-top:1px solid var(--line);margin:16px 0}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    @media (max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:560px){.grid{grid-template-columns:1fr}}
+
+    .btn{
+      appearance:none;
+      border:1px solid rgba(255,110,168,.35);
+      background:linear-gradient(180deg, rgba(255,110,168,.18), rgba(255,110,168,.12));
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:14px;
+      cursor:pointer;
+      font-weight:800;
+      display:inline-flex;align-items:center;gap:8px;
+      transition:transform .05s ease, filter .12s ease, background .12s ease;
+      user-select:none;
+      text-decoration:none;
+    }
+    .btn:hover{filter:brightness(1.02)}
+    .btn:active{transform:translateY(1px)}
+    .btn.secondary{
+      border-color:rgba(15, 15, 20, .12);
+      background:rgba(255,255,255,.74);
+    }
+
+    .field{display:grid;gap:6px;margin-top:10px}
+    label{font-size:12px;color:var(--muted);font-weight:700}
+    input{
+      width:100%;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.92);
+      font:inherit;
+      outline:none;
+    }
+    input:focus{border-color:rgba(255,110,168,.45); box-shadow:0 0 0 3px rgba(255,110,168,.12)}
+
+    .notice{font-size:13px;color:var(--muted)}
+    .danger{color:var(--danger)}
+
+    .thumb{
+      width:100%;
+      aspect-ratio:1/1;
+      border-radius:16px;
+      overflow:hidden;
+      border:1px solid var(--line);
+      background:linear-gradient(135deg, rgba(255,110,168,.14), rgba(164,140,255,.12));
+      position:relative;
+    }
+    .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .meta{display:flex;justify-content:space-between;gap:10px;margin-top:10px;color:var(--muted);font-size:12px}
+    .meta .dateText{
+      font-family:"Nunito","Noto Sans KR",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      font-weight:900;
+      letter-spacing:.2px;
+      color:rgba(28,28,34,.78);
+    }
+    .meta .whoText{ color:rgba(28,28,34,.70); font-weight:800; }
+
+    /* 커스텀 파일 선택 UI */
+    .fileWrap{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .fileInput{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+    .fileBtn{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:10px 12px;border-radius:14px;
+      border:1px solid rgba(255,110,168,.35);
+      background:linear-gradient(180deg, rgba(255,110,168,.16), rgba(255,110,168,.10));
+      cursor:pointer;
+      font-weight:900;
+      user-select:none;
+    }
+    .fileName{
+      font-size:13px;
+      color:rgba(28,28,34,.70);
+      font-weight:800;
+      max-width:240px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .fileHint{font-size:12px;color:rgba(28,28,34,.55);font-weight:800}
+    .ico{font-weight:900;line-height:1;display:inline-block}
+
+    .title{margin:8px 0 0;font-weight:900;letter-spacing:-.2px}
+    .actions{display:flex;justify-content:flex-end;margin-top:10px;gap:8px;flex-wrap:wrap}
+
+    .chip{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,110,168,.20);
+      background:rgba(255,110,168,.10);
+      font-size:12px;
+      font-weight:800;
+      color:rgba(28,28,34,.88);
+    }
+
+    .photo-card{cursor:pointer; transition:transform .08s ease, box-shadow .12s ease}
+    .photo-card:hover{transform:translateY(-2px); box-shadow:0 18px 45px rgba(0,0,0,.10)}
+
+    /* 모달 */
+    #modal{
+      display:none;
+      position:fixed; inset:0;
+      background:rgba(0,0,0,.58);
+      z-index:9999;
+      padding:18px;
+    }
+    #modalBox{
+      max-width:980px;
+      margin:4vh auto;
+      background:rgba(255,255,255,.92);
+      border-radius:22px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.35);
+      box-shadow:0 18px 60px rgba(0,0,0,.25);
+      backdrop-filter: blur(10px);
+    }
+    #modalTop{
+      display:flex; justify-content:space-between; align-items:center;
+      padding:12px 14px;
+      border-bottom:1px solid var(--line);
+      gap:10px; flex-wrap:wrap;
+    }
+    #modalTitle{font-weight:900}
+    #modalImg{
+      width:100%;
+      max-height:72vh;
+      object-fit:contain;
+      display:block;
+      background:rgba(15,15,20,.03);
+    }
+    #modalMeta{padding:12px 14px;color:var(--muted);font-size:13px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <div class="brand">
+        <div class="badge">📷</div>
+        <div>
+          <h1>방랑 길드 사진 게시판</h1>
+          <div class="sub">로그인 없이 업로드 가능 · 운영진은 삭제 가능</div>
+        </div>
+      </div>
+      <div class="row">
+        <a class="btn secondary" href="/"><span>🏠</span><span>메인</span></a>
+        <button class="btn" id="refreshBtn"><span>🔄</span><span>새로고침</span></button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="row" style="justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-weight:900;display:flex;align-items:center;gap:8px">
+            <span class="chip">✨ 업로드</span>
+            <span>사진 올리기</span>
+          </div>
+          <div class="notice">※ 욕설/혐오/개인정보 포함 이미지는 운영진이 삭제할 수 있어요.</div>
+        </div>
+        <div id="status" class="notice"></div>
+      </div>
+
+      <div class="row" style="margin-top:12px">
+        <div style="flex:1;min-width:200px" class="field">
+          <label>닉네임</label>
+          <input id="nickname" placeholder="예: 막내" maxlength="30" />
+        </div>
+
+        <div style="flex:2;min-width:240px" class="field">
+          <label>설명(선택)</label>
+          <input id="caption" placeholder="예: 레이드 클리어!" maxlength="120" />
+        </div>
+
+        <div style="min-width:200px" class="field">
+          <label>사진 날짜(선택)</label>
+          <input id="takenOn" type="date" />
+        </div>
+
+        
+        <div style="min-width:260px" class="field">
+          <label>사진 파일</label>
+          <div class="fileWrap">
+            <input class="fileInput" id="file" type="file" accept="image/*" />
+            <label class="fileBtn" for="file"><span class="ico" aria-hidden="true">📁</span><span>파일 선택</span></label>
+            <span id="fileName" class="fileName">선택된 파일 없음</span>
+          </div>
+          <div class="fileHint">8MB 이하 권장</div>
+        </div>
+
+      </div>
+
+      <div class="row" style="margin-top:12px;justify-content:flex-end">
+        <button class="btn" id="uploadBtn"><span>⬆️</span><span>업로드</span></button>
+      </div>
+
+      <hr class="divider">
+
+      <div class="row" style="justify-content:space-between">
+        <div style="font-weight:900;display:flex;align-items:center;gap:8px">
+          <span class="chip"><span class="ico" aria-hidden="true">✦</span>갤러리</span>
+          <span>최근 사진</span>
+        </div>
+        <div class="notice">총 <span id="count">0</span>개</div>
+      </div>
+
+      <div class="notice" style="margin-top:8px">사진 카드를 클릭하면 가운데에서 크게 볼 수 있어요.</div>
+      <div id="list" class="grid" style="margin-top:12px"></div>
+
+      
+      <div id="adminPanel" class="notice" style="display:none;margin-top:16px">
+        <div style="font-weight:900;margin-bottom:6px">🛡️ 운영진 모드</div>
+        <div class="field" style="margin-top:0">
+          <label>관리자 토큰</label>
+          <input id="adminToken" placeholder="ADMIN_TOKEN" />
+          <div class="notice">운영진 모드에서는 삭제 버튼이 표시돼요.</div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- 모달 -->
+  <div id="modal" aria-hidden="true">
+    <div id="modalBox" role="dialog" aria-modal="true" aria-label="사진 크게 보기">
+      <div id="modalTop">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <div id="modalTitle"></div>
+          <div class="notice" id="modalSub"></div>
+        </div>
+        <div class="row">
+          <a class="btn secondary" id="modalOpen" href="#" target="_blank" rel="noopener"><span>🔗</span><span>원본</span></a>
+          <button class="btn" id="modalClose"><span>✖️</span><span>닫기</span></button>
+        </div>
+      </div>
+      <img id="modalImg" src="" alt="" />
+      <div id="modalMeta"></div>
+    </div>
+  </div>
+
+  <!-- Supabase 라이브러리 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- 너가 만든 설정 파일(루트에 있어야 함): /supabase_config.js -->
+  <script src="/supabase_config.js"></script>
+
+  <script>
+    const BUCKET = "bangrang-photos";
+    const TABLE  = "photo_posts";
+
+    const $ = (id) => document.getElementById(id);
+    const statusEl = $("status");
+
+    function setStatus(msg, isError=false){
+      statusEl.textContent = msg || "";
+      statusEl.className = "notice" + (isError ? " danger" : "");
+    }
+
+    function fmt(dt){
+      try{
+        const d = new Date(dt);
+        if (typeof dt === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dt)) {
+          return dt.replaceAll("-", ".");
+        }
+        return d.toLocaleString("ko-KR", { year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit" });
+      }catch(e){ return ""; }
+    }
+
+    function escapeHtml(s){
+      return String(s||"")
+        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;").replaceAll("'","&#39;");
+    }
+
+    if(!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY){
+      setStatus("설정 누락: supabase_config.js에 SUPABASE_URL / SUPABASE_ANON_KEY를 넣어줘!", true);
+      console.error("Missing SUPABASE config", window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    }
+
+    const sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+
+
+    // ---- UI: 파일명 표시 ----
+    const fileEl = $("file");
+    const fileNameEl = $("fileName");
+    if (fileEl && fileNameEl){
+      fileEl.addEventListener("change", ()=>{
+        const f = fileEl.files && fileEl.files[0];
+        fileNameEl.textContent = f ? f.name : "선택된 파일 없음";
+      });
+    }
+
+    // ---- 운영진 모드(?admin=1 일 때만) ----
+    const ADMIN_MODE = new URLSearchParams(location.search).get("admin") === "1";
+    if (ADMIN_MODE){
+      const ap = document.getElementById("adminPanel");
+      if (ap) ap.style.display = "block";
+    }
+
+    // ---- 모달 ----
+    const modal = $("modal");
+    const modalImg = $("modalImg");
+    const modalTitle = $("modalTitle");
+    const modalSub = $("modalSub");
+    const modalMeta = $("modalMeta");
+    const modalOpen = $("modalOpen");
+
+    function openModal({ imgUrl, caption, nickname, shownDate }){
+      modalTitle.textContent = caption || "사진";
+      modalSub.textContent = `${nickname || "익명"} · ${fmt(shownDate)}`;
+      modalMeta.textContent = "배경을 클릭하거나 ESC를 누르면 닫혀요.";
+      modalImg.src = imgUrl;
+      modalOpen.href = imgUrl;
+      modal.style.display = "block";
+      modal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeModal(){
+      modal.style.display = "none";
+      modal.setAttribute("aria-hidden", "true");
+      modalImg.src = "";
+      modalOpen.href = "#";
+    }
+
+    $("modalClose").addEventListener("click", closeModal);
+    modal.addEventListener("click", (e)=>{
+      if(e.target.id === "modal") closeModal();
+    });
+    document.addEventListener("keydown", (e)=>{
+      if(e.key === "Escape" && modal.style.display === "block") closeModal();
+    });
+
+    async function listPhotos(){
+      setStatus("");
+      $("list").innerHTML = "";
+
+      const { data, error } = await sb
+        .from(TABLE)
+        .select("*")
+        .order("created_at", { ascending:false })
+        .limit(30);
+
+      if(error){
+        setStatus("불러오기 실패: " + error.message, true);
+        return;
+      }
+
+      $("count").textContent = data.length;
+
+      if(data.length === 0){
+        $("list").innerHTML = '<div class="notice">아직 사진이 없어요! 첫 업로드 해줘요 💖</div>';
+        return;
+      }
+
+      for(const row of data){
+        const { data: pub } = sb.storage.from(BUCKET).getPublicUrl(row.image_path);
+        const imgUrl = pub.publicUrl;
+        const shownDate = row.taken_on ? row.taken_on : row.created_at;
+
+        const card = document.createElement("div");
+        card.className = "card photo-card";
+        card.innerHTML = `
+          <div class="thumb"><img alt="" src="${imgUrl}"></div>
+          <div class="meta">
+            <span class="whoText">👤 ${escapeHtml(row.nickname || "익명")}</span>
+            <span class="dateText">📅 ${escapeHtml(fmt(shownDate))}</span>
+          </div>
+          <div class="title">${escapeHtml(row.caption || "사진")}</div>
+          
+          <div class="actions">
+            <button class="btn secondary" data-action="copy" data-url="${imgUrl}"><span>📎</span><span>링크</span></button>
+            <button class="btn secondary" data-action="open" data-url="${imgUrl}"><span>🖼️</span><span>원본</span></button>
+            ${ADMIN_MODE ? `<button class="btn secondary" data-action="delete" data-id="${row.id}" data-path="${row.image_path}"><span>🗑️</span><span>삭제</span></button>` : ``}
+          </div>
+
+        `;
+
+        card.addEventListener("click", (ev)=>{
+          if(ev.target.closest("button")) return;
+          openModal({
+            imgUrl,
+            caption: row.caption,
+            nickname: row.nickname,
+            shownDate
+          });
+        });
+
+        $("list").appendChild(card);
+      }
+    }
+
+    async function upload(){
+      const nickname = $("nickname").value.trim() || "익명";
+      const caption  = $("caption").value.trim() || "사진";
+      const takenOn  = $("takenOn").value || null;
+      const file     = $("file").files?.[0];
+
+      if(!file){ setStatus("사진 파일을 선택해줘!", true); return; }
+      if(file.size > 8 * 1024 * 1024){ setStatus("파일이 너무 커요. 8MB 이하로 올려줘!", true); return; }
+
+      setStatus("업로드 중...");
+
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const safeExt = ["jpg","jpeg","png","webp","gif"].includes(ext) ? ext : "jpg";
+      const path = `${Date.now()}_${Math.random().toString(16).slice(2)}.${safeExt}`;
+
+      const { error: upErr } = await sb.storage.from(BUCKET).upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type || "image/jpeg",
+      });
+      if(upErr){ setStatus("업로드 실패: " + upErr.message, true); return; }
+
+      const insertRow = { nickname, caption, image_path: path };
+      if (takenOn) insertRow.taken_on = takenOn; // DB에 taken_on 컬럼이 있으면 저장됨
+
+      const { error: dbErr } = await sb.from(TABLE).insert([insertRow]);
+      if(dbErr){
+        await sb.storage.from(BUCKET).remove([path]);
+        setStatus("저장 실패: " + dbErr.message, true);
+        return;
+      }
+
+      setStatus("업로드 완료! 💖");
+      $("file").value = "";
+      if ($("fileName")) $("fileName").textContent = "선택된 파일 없음";
+      $("caption").value = "";
+      $("takenOn").value = "";
+      await listPhotos();
+    }
+
+    async function adminDelete(id, path){
+      const token = $("adminToken").value.trim();
+      if(!token){ alert("운영진 토큰을 입력해야 삭제할 수 있어요!"); return; }
+      if(!confirm("정말 삭제할까요?")) return;
+
+      setStatus("삭제 중...");
+      const res = await fetch("/.netlify/functions/admin_delete", {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify({ token, id, path }),
+      });
+      const data = await res.json().catch(()=>({}));
+      if(!res.ok){ setStatus("삭제 실패: " + (data.error || res.statusText), true); return; }
+      setStatus("삭제 완료");
+      await listPhotos();
+    }
+
+    document.addEventListener("click", async (e)=>{
+      const btn = e.target.closest("button[data-action]");
+      if(!btn) return;
+
+      const action = btn.dataset.action;
+
+      if(action === "copy"){
+        try{ await navigator.clipboard.writeText(btn.dataset.url); setStatus("링크를 복사했어!"); }
+        catch{ setStatus("복사 실패(브라우저 권한 문제)", true); }
+      }
+      if(action === "open"){
+        window.open(btn.dataset.url, "_blank", "noopener");
+      }
+      if(action === "delete"){
+        await adminDelete(btn.dataset.id, btn.dataset.path);
+      }
+    });
+
+    $("uploadBtn").addEventListener("click", upload);
+    $("refreshBtn").addEventListener("click", listPhotos);
+
+    listPhotos();
+  </script>
+</body>
+</html>
