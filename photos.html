@@ -76,6 +76,9 @@
     .btn.secondary:hover{background:rgba(244,143,177,.12);color:var(--brand);border-color:rgba(244,143,177,.40)}
     .btn:disabled{opacity:.65;cursor:not-allowed;transform:none}
 
+    .btn.page{padding:8px 10px;border-radius:12px}
+    .btn.page.active{background:rgba(244,143,177,.28);border-color:rgba(244,143,177,.65)}
+
     /* 메인으로 파란 글씨 방지 */
     a.btnlink, a.btnlink:visited, a.btnlink:hover, a.btnlink:active{
       text-decoration:none;
@@ -428,6 +431,15 @@
       </div>
       <div id="list" class="grid"></div>
 
+      <div class="row" id="pager" style="justify-content:space-between;align-items:center;margin-top:14px;gap:10px;flex-wrap:wrap">
+        <div class="notice">페이지 <span id="pageNow">1</span> / <span id="pageTotal">1</span></div>
+        <div class="row" style="gap:8px">
+          <button class="btn secondary" id="prevPageBtn" type="button">이전</button>
+          <div class="notice" id="pageBtns" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+          <button class="btn secondary" id="nextPageBtn" type="button">다음</button>
+        </div>
+      </div>
+
       <!-- 운영진 UI는 운영진 페이지에서만 보이도록 -->
       <div id="adminPanel" style="display:none;margin-top:16px" class="notice">
         <details open>
@@ -662,124 +674,198 @@
     $("modalNextBtn").addEventListener("click", ()=> openModalByIndex(currentIndex + 1));
 
 
-    async function listPhotos(){
-      setStatus("");
-      $("list").innerHTML = "";
+    // Pagination
+const PAGE_SIZE = 12;
+let currentPage = 1;
+let totalPages = 1;
 
-      const { data, error } = await sb
-        .from(TABLE)
-        .select("*")
-        .order("created_at", { ascending:false })
-        .limit(30);
+async function getTotalCount(){
+  const { count, error } = await sb.from(TABLE).select("id", { count: "exact", head: true });
+  if(error){
+    console.error(error);
+    return null;
+  }
+  return count ?? null;
+}
 
-      if(error){
-        setStatus("불러오기 실패: " + error.message, true);
-        console.error(error);
-        return;
-      }
+function renderPager(){
+  const nowEl = $("pageNow"), totEl = $("pageTotal"), prevBtn = $("prevPageBtn"), nextBtn = $("nextPageBtn"), host = $("pageBtns");
+  if(!nowEl || !totEl || !prevBtn || !nextBtn || !host) return;
 
-      $("count").textContent = data.length;
+  nowEl.textContent = String(currentPage);
+  totEl.textContent = String(totalPages);
 
-      if(data.length === 0){
-        $("list").innerHTML = '<div class="notice">아직 사진이 없어요! 첫 업로드 해줘요 💖</div>';
-        return;
-      }
+  prevBtn.disabled = currentPage <= 1;
+  nextBtn.disabled = currentPage >= totalPages;
 
-      modalItems = [];
-      let i = 0;
-      for(const row of data){
-        const storagePath = getStoragePathFromRow(row);
-        const { data: pub } = sb.storage.from(BUCKET).getPublicUrl(storagePath || "");
-        const imgUrl = pub.publicUrl;
+  // show up to 7 page buttons around current
+  host.innerHTML = "";
+  const maxBtns = 7;
+  let start = Math.max(1, currentPage - Math.floor(maxBtns/2));
+  let end = Math.min(totalPages, start + maxBtns - 1);
+  start = Math.max(1, end - maxBtns + 1);
 
-        const title = getTitleFromRow(row);
-        const desc  = getDescFromRow(row);
-        const nickname = row.nickname || "익명";
-        const dateText = getDisplayDate(row);
+  for(let p = start; p <= end; p++){
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "btn secondary page" + (p === currentPage ? " active" : "");
+    b.textContent = String(p);
+    b.addEventListener("click", ()=> listPhotos(p));
+    host.appendChild(b);
+  }
+}
 
-        modalItems.push({
-          id: String(row.id),
-          path: storagePath,
-          url: imgUrl,
-          title,
-          nickname,
-          desc,
-          dateText,
-        });
+async function fetchRowsWithBestOrder(from, to){
+  // 최신글이 안 뜨는 문제를 줄이기 위해:
+  // 1) 날짜 컬럼(post_date/date/taken_at/event_date...)로 정렬 시도
+  // 2) 없으면 created_at 정렬로 fallback
+  const orderCandidates = ["post_date","date","taken_at","event_date","photo_date","created_at"];
 
-        const adminDeleteBtnHtml = IS_ADMIN_PAGE
-          ? `<button class="btn secondary" type="button" data-action="delete" data-id="${row.id}" data-path="${storagePath}">삭제(운영진)</button>`
-          : ``;
-
-        const card = document.createElement("div");
-        card.className = "post";
-        card.innerHTML = `
-          <div class="thumb" role="button" tabindex="0"
-               data-action="view"
-               data-index="${i}"
-               data-id="${row.id}"
-               data-path="${storagePath}"
-               data-url="${imgUrl}"
-               data-title="${escapeHtml(title)}"
-               data-nickname="${escapeHtml(nickname)}"
-               data-desc="${escapeHtml(desc)}"
-               data-date="${escapeHtml(dateText)}">
-            <img alt="" src="${imgUrl}">
-          </div>
-          <div class="meta"><span>${escapeHtml(nickname)}</span><span>${escapeHtml(dateText)}</span></div>
-          <div class="title">${escapeHtml(title)}</div>
-          ${desc ? `<div class="desc">${escapeHtml(desc)}</div>` : ``}
-          <div class="row" style="justify-content:flex-end;margin-top:12px">
-            <button class="btn secondary" type="button" data-action="copy" data-url="${imgUrl}">링크 복사</button>
-            <button class="btn secondary" type="button" data-action="open" data-url="${imgUrl}">원본 보기</button>
-            ${adminDeleteBtnHtml}
-          </div>
-        `;
-        $("list").appendChild(card);
-        i++;
-      }
+  for(const col of orderCandidates){
+    const q = sb.from(TABLE).select("*").order(col, { ascending:false }).range(from, to);
+    const { data, error } = await q;
+    if(!error) return { data, used: col };
+    const msg = String(error.message || "");
+    // 컬럼 없음/정렬 불가인 경우만 다음 후보로 넘어감
+    const looksLikeColumnIssue = msg.includes("column") || msg.includes("not found") || msg.includes("schema");
+    if(!looksLikeColumnIssue){
+      return { data: null, error };
     }
+  }
+  return { data: null, error: { message: "정렬 가능한 컬럼을 찾지 못했어요." } };
+}
+
+async function listPhotos(page=1){
+  setStatus("");
+  $("list").innerHTML = "";
+
+  // total count (for pagination)
+  const cnt = await getTotalCount();
+  if(typeof cnt === "number"){
+    totalPages = Math.max(1, Math.ceil(cnt / PAGE_SIZE));
+  }else{
+    totalPages = 1;
+  }
+
+  currentPage = Math.min(Math.max(1, page), totalPages);
+
+  const from = (currentPage - 1) * PAGE_SIZE;
+  const to   = from + PAGE_SIZE - 1;
+
+  const { data, error } = await fetchRowsWithBestOrder(from, to);
+
+  if(error){
+    setStatus("불러오기 실패: " + (error.message || error), true);
+    console.error(error);
+    return;
+  }
+
+  // 보여주는 건 "현재 페이지 개수" + total count는 별도로
+  $("count").textContent = String(cnt ?? data.length);
+
+  if(!data || data.length === 0){
+    $("list").innerHTML = '<div class="notice">아직 사진이 없어요! 첫 업로드 해줘요 💖</div>';
+    renderPager();
+    return;
+  }
+
+  modalItems = [];
+  let i = 0;
+  for(const row of data){
+    const storagePath = getStoragePathFromRow(row);
+    const { data: pub } = sb.storage.from(BUCKET).getPublicUrl(storagePath || "");
+    const imgUrl = pub.publicUrl;
+
+    const title = getTitleFromRow(row);
+    const desc  = getDescFromRow(row);
+    const nickname = row.nickname || "익명";
+    const dateText = getDisplayDate(row);
+
+    modalItems.push({
+      id: String(row.id),
+      path: storagePath,
+      url: imgUrl,
+      title,
+      nickname,
+      desc,
+      dateText,
+    });
+
+    const adminDeleteBtnHtml = IS_ADMIN_PAGE
+      ? `<button class="btn secondary" type="button" data-action="delete" data-id="${row.id}" data-path="${storagePath}">삭제(운영진)</button>`
+      : ``;
+
+    const card = document.createElement("div");
+    card.className = "post";
+    card.innerHTML = `
+      <div class="thumb" role="button" tabindex="0"
+           data-action="view"
+           data-index="${i}"
+           data-id="${row.id}"
+           data-path="${storagePath}"
+           data-url="${imgUrl}"
+           data-title="${escapeHtml(title)}"
+           data-nickname="${escapeHtml(nickname)}"
+           data-desc="${escapeHtml(desc)}"
+           data-date="${escapeHtml(dateText)}">
+        <img alt="" src="${imgUrl}">
+      </div>
+      <div class="meta"><span>${escapeHtml(nickname)}</span><span>${escapeHtml(dateText)}</span></div>
+      <div class="title">${escapeHtml(title)}</div>
+      ${desc ? `<div class="desc">${escapeHtml(desc)}</div>` : ``}
+      <div class="row" style="justify-content:flex-end;margin-top:12px">
+        <button class="btn secondary" type="button" data-action="copy" data-url="${imgUrl}">링크 복사</button>
+        <button class="btn secondary" type="button" data-action="open" data-url="${imgUrl}">원본 보기</button>
+        ${adminDeleteBtnHtml}
+      </div>
+    `;
+    $("list").appendChild(card);
+    i++;
+  }
+
+  renderPager();
+}
 
     // Smart insert: try common column name variants (post_date vs date vs taken_at...), then fallback
-    async function insertPostSafe(payload){
-      const tries = [
-        payload,
-        { ...payload, date: payload.post_date, post_date: undefined },
-        { ...payload, taken_at: payload.post_date, post_date: undefined },
-        { ...payload, event_date: payload.post_date, post_date: undefined },
-      ];
+    // Smart insert: try common column name variants (post_date vs date vs taken_at...), then fallback
+async function insertPostSafe(payload){
+  const tries = [
+    payload,
+    { ...payload, date: payload.post_date, post_date: undefined },
+    { ...payload, taken_at: payload.post_date, post_date: undefined },
+    { ...payload, event_date: payload.post_date, post_date: undefined },
+    { ...payload, photo_date: payload.post_date, post_date: undefined },
+  ];
 
-      for(const attempt of tries){
-        const cleaned = {};
-        for(const [k,v] of Object.entries(attempt)){
-          if(v === undefined) continue;
-          cleaned[k] = v;
-        }
-        const { error } = await sb.from(TABLE).insert([cleaned]);
-        if(!error) return { ok:true };
-
-        const msg = String(error.message || "");
-        const looksLikeColumnIssue = msg.includes("column") || msg.includes("schema") || msg.includes("not found");
-        if(!looksLikeColumnIssue) return { ok:false, error };
-        // if it's a column issue, keep trying next variant
-      }
-
-      // last-resort fallback: keep at least image + nickname + caption
-      const fallback = {
-        nickname: payload.nickname,
-        caption: payload.description ? `[${payload.title}] ${payload.description}` : (payload.title || "사진"),
-        image_path: payload.image_path,
-      };
-      const { error: err2 } = await sb.from(TABLE).insert([fallback]);
-      if(!err2){
-        return { ok:true, fallback:true, warn:"DB 컬럼명이 달라 title/description/date가 저장되지 않았을 수 있어요." };
-      }
-      return { ok:false, error: err2 };
+  for(const attempt of tries){
+    const cleaned = {};
+    for(const [k,v] of Object.entries(attempt)){
+      if(v === undefined) continue;
+      cleaned[k] = v;
     }
-        return { ok:false, error: err2 };
-      }
-      return { ok:false, error: err1 };
+    const { error } = await sb.from(TABLE).insert([cleaned]);
+    if(!error) return { ok:true };
+
+    const msg = String(error.message || "");
+    const looksLikeColumnIssue = msg.includes("column") || msg.includes("schema") || msg.includes("not found");
+    if(!looksLikeColumnIssue){
+      return { ok:false, error };
     }
+    // 컬럼 문제면 다음 후보로 계속 시도
+  }
+
+  // last-resort fallback: 최소한 파일 경로는 저장
+  const fallback = {
+    nickname: payload.nickname,
+    caption: payload.description ? `[${payload.title}] ${payload.description}` : (payload.title || "사진"),
+    image_path: payload.image_path,
+  };
+  const { error: err2 } = await sb.from(TABLE).insert([fallback]);
+  if(!err2){
+    return { ok:true, fallback:true, warn:"DB 컬럼명이 달라 title/description/date가 저장되지 않았을 수 있어요." };
+  }
+  return { ok:false, error: err2 };
+}
 
     async function upload(){
       clearFieldState();
