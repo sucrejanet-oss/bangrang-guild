@@ -72,7 +72,7 @@
       </div>
 
       <div class="row" style="margin-top:12px;justify-content:flex-end">
-        <button class="btn" id="uploadBtn">업로드</button>
+        <button class="btn" id="uploadBtn" type="button">업로드</button>
       </div>
 
       <hr style="border:none;border-top:1px solid var(--line);margin:16px 0">
@@ -98,11 +98,10 @@
 
   <!-- Supabase 라이브러리 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- 너가 만든 설정 파일(루트에 있어야 함): /supabase_config.js -->
+  <!-- 루트: /supabase_config.js (SUPABASE_URL, SUPABASE_ANON_KEY 정의되어 있어야 함) -->
   <script src="/supabase_config.js"></script>
 
   <script>
-    // ✅ "supabase"라는 변수명 자체를 안 씀(중복 선언 에러 방지)
     const BUCKET = "bangrang-photos";
     const TABLE  = "photo_posts";
 
@@ -125,13 +124,13 @@
         .replaceAll('"',"&quot;").replaceAll("'","&#39;");
     }
 
-    // ---- 설정 파일 체크 ----
+    // 설정 체크
     if(!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY){
       setStatus("설정 누락: supabase_config.js에 SUPABASE_URL / SUPABASE_ANON_KEY를 넣어줘!", true);
       console.error("Missing SUPABASE config", window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
     }
 
-    // ---- 클라이언트 생성 (sb) ----
+    // 클라이언트 생성
     const sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
     async function listPhotos(){
@@ -167,9 +166,9 @@
           <div class="meta"><span>${escapeHtml(row.nickname || "익명")}</span><span>${fmt(row.created_at)}</span></div>
           <div class="title">${escapeHtml(row.caption || "사진")}</div>
           <div class="row" style="justify-content:flex-end;margin-top:10px">
-            <button class="btn secondary" data-action="copy" data-url="${imgUrl}">링크 복사</button>
-            <button class="btn secondary" data-action="open" data-url="${imgUrl}">원본 보기</button>
-            <button class="btn secondary" data-action="delete" data-id="${row.id}" data-path="${row.image_path}">삭제(운영진)</button>
+            <button class="btn secondary" type="button" data-action="copy" data-url="${imgUrl}">링크 복사</button>
+            <button class="btn secondary" type="button" data-action="open" data-url="${imgUrl}">원본 보기</button>
+            <button class="btn secondary" type="button" data-action="delete" data-id="${row.id}" data-path="${row.image_path}">삭제(운영진)</button>
           </div>
         `;
         $("list").appendChild(card);
@@ -215,46 +214,27 @@
       if(!token){ alert("운영진 토큰을 입력해야 삭제할 수 있어요!"); return false; }
       if(!confirm("정말 삭제할까요?")) return false;
 
-  // 혹시라도 path가 비면 바로 알려주기
-  if(!id || !path){
-    setStatus("삭제 실패: id 또는 path가 비어있어요. (버튼 데이터 문제)", true);
-    console.error("missing id/path", { id, path });
-    return false;
-  }
+      if(!id || !path){
+        setStatus("삭제 실패: id 또는 path가 비어있어요. (버튼 데이터 문제)", true);
+        console.error("missing id/path", { id, path });
+        return false;
+      }
 
-  setStatus("삭제 중...");
-  try{
-    const res = await fetch("/.netlify/functions/admin_delete", {
-      method: "POST",
-      headers: { "Content-Type":"application/json" },
-      body: JSON.stringify({ token, id, path }),
-    });
+      setStatus("삭제 중...");
+      try{
+        const res = await fetch("/.netlify/functions/admin_delete", {
+          method: "POST",
+          headers: { "Content-Type":"application/json" },
+          body: JSON.stringify({ token, id, path }),
+        });
 
-    const text = await res.text();
-    let data = {};
-    try{ data = JSON.parse(text); }catch(e){ data = { raw: text }; }
+        const text = await res.text();
+        let data = {};
+        try{ data = JSON.parse(text); }catch(e){ data = { raw: text }; }
 
-    if(!res.ok){
-      setStatus("삭제 실패: " + (data.error || res.statusText), true);
-      console.error("admin_delete failed", { status: res.status, statusText: res.statusText, data });
-      return false;
-    }
-
-    setStatus(`삭제 완료 ✅ (DB:${data.db_deleted} / 파일:${data.storage_removed||0})`);
-    await listPhotos();
-    return true;
-  }catch(err){
-    setStatus("삭제 요청 실패(네트워크/함수 문제): " + (err?.message || String(err)), true);
-    console.error("admin_delete fetch error", err);
-    return false;
-  }
-}
-
-        // 성공인데 실제 삭제가 0건이면 사용자에게 알려줌
-        if(data && data.db_deleted === 0){
-          setStatus("삭제 요청은 성공했지만, 글을 못 찾았어(삭제 0건). 글 번호(id)가 잘못 넘어간 것 같아!", true);
-          console.warn("admin_delete ok but db_deleted=0", data);
-          await listPhotos();
+        if(!res.ok){
+          setStatus("삭제 실패: " + (data.error || res.statusText), true);
+          console.error("admin_delete failed", { status: res.status, statusText: res.statusText, data });
           return false;
         }
 
@@ -282,13 +262,12 @@
         window.open(btn.dataset.url, "_blank", "noopener");
       }
       if(action === "delete"){
-        const id = btn.dataset.id;      // ✅ 숫자 변환 X
-        const path = btn.dataset.path;  // ✅ 그대로
-        const ok = await adminDelete(id, path);
+        const ok = await adminDelete(btn.dataset.id, btn.dataset.path);
         if(ok){ btn.closest(".card")?.remove(); }
       }
     });
 
+    // ✅ 업로드/새로고침 버튼 이벤트 연결 (이게 빠지면 업로드 안 먹음)
     $("uploadBtn").addEventListener("click", upload);
     $("refreshBtn").addEventListener("click", listPhotos);
 
