@@ -600,9 +600,47 @@
     function getPostDateFromRow(row){
       return row.post_date || row.date || row.taken_at || row.event_date || row.photo_date || "";
     }
-    function getDisplayDate(row){
+    function extractDateTextFromRow(row){
+      // 1) DB에 날짜 컬럼이 있으면 그걸 우선 사용
       const postDate = getPostDateFromRow(row);
-      return postDate ? fmtYYMMDD(postDate) : "";
+      if(postDate) return fmtYYMMDD(postDate);
+
+      // 2) (DB에 날짜 컬럼이 없을 때) caption 안에 저장된 날짜를 파싱
+      const s = String(row.caption || row.description || row.desc || "");
+      // YYYY-MM-DD
+      let m = s.match(/\b(\d{4})-(\d{2})-(\d{2})\b/);
+      if(m) return fmtYYMMDD(`${m[1]}-${m[2]}-${m[3]}`);
+
+      // YY/MM/DD
+      m = s.match(/\b(\d{2})\/(\d{2})\/(\d{2})\b/);
+      if(m) return `${m[1]}/${m[2]}/${m[3]}`;
+
+      // 3) 마지막 fallback: 업로드 날짜(created_at)
+      return fmtCreatedAt(row.created_at);
+    }
+
+    function getSortableDateValue(row){
+      const postDate = getPostDateFromRow(row);
+      let iso = "";
+      if(postDate){
+        iso = String(postDate);
+      }else{
+        const s = String(row.caption || row.description || row.desc || "");
+        let m = s.match(/\b(\d{4})-(\d{2})-(\d{2})\b/);
+        if(m) iso = `${m[1]}-${m[2]}-${m[3]}`;
+        else{
+          m = s.match(/\b(\d{2})\/(\d{2})\/(\d{2})\b/);
+          if(m) iso = `20${m[1]}-${m[2]}-${m[3]}`; // 20YY 가정
+        }
+      }
+      const d = iso ? new Date(iso) : null;
+      if(d && !isNaN(d)) return d.getTime();
+      const c = new Date(row.created_at);
+      return isNaN(c) ? 0 : c.getTime();
+    }
+
+    function getDisplayDate(row){
+      return extractDateTextFromRow(row);
     }
 
     // Modal state
@@ -716,18 +754,25 @@ function renderPager(){
 }
 
 async function fetchRowsWithBestOrder(from, to){
-  // ✅ 지정한 날짜(post_date) 기준으로만 정렬 (같은 날짜는 created_at으로 보조정렬)
-  //    ※ post_date 컬럼이 DB에 있어야 합니다.
+  // ✅ DB에 post_date 같은 날짜 컬럼이 없을 수도 있어서,
+  //    "created_at 최신순으로 넉넉히 가져온 뒤" 클라이언트에서 지정날짜 기준으로 재정렬해요.
+  //    (이렇게 하면 'column ... does not exist' 에러가 안 납니다.)
+  const MAX_FETCH = 500; // 너무 많이 가져오면 느려질 수 있어서 상한
   const q = sb
     .from(TABLE)
     .select("*")
-    .order("post_date", { ascending: false })
     .order("created_at", { ascending: false })
-    .range(from, to);
+    .range(0, MAX_FETCH - 1);
 
   const { data, error } = await q;
   if(error) return { data: null, error };
-  return { data, used: "post_date" };
+
+  const rows = Array.isArray(data) ? data.slice() : [];
+  rows.sort((a,b)=> getSortableDateValue(b) - getSortableDateValue(a));
+
+  // 페이지 슬라이스
+  const sliced = rows.slice(from, to + 1);
+  return { data: sliced, used: "client_sort" };
 }
 
 async function listPhotos(page=1){
@@ -736,8 +781,14 @@ async function listPhotos(page=1){
 
   // total count (for pagination)
   const cnt = await getTotalCount();
-  if(typeof cnt === "number"){
-    totalPages = Math.max(1, Math.ceil(cnt / PAGE_SIZE));
+
+  // fetchRowsWithBestOrder가 최대 500개만 가져와서 정렬하기 때문에
+  // 페이지도 그 범위 기준으로 계산해요.
+  const MAX_FETCH = 500;
+  const effectiveCount = (typeof cnt === "number") ? Math.min(cnt, MAX_FETCH) : MAX_FETCH;
+
+  if(typeof effectiveCount === "number"){
+    totalPages = Math.max(1, Math.ceil(effectiveCount / PAGE_SIZE));
   }else{
     totalPages = 1;
   }
@@ -852,7 +903,14 @@ async function insertPostSafe(payload){
   // last-resort fallback: 최소한 파일 경로는 저장
   const fallback = {
     nickname: payload.nickname,
-    caption: payload.description ? `[${payload.title}] ${payload.description}` : (payload.title || "사진"),
+    // DB에 날짜 컬럼이 없을 때를 대비해서 caption 안에 날짜를 함께 저장
+    // (표시/정렬 시 extractDateTextFromRow/getSortableDateValue에서 이 날짜를 파싱합니다)
+    caption: (() => {
+      const dateLine = payload.post_date ? ("📅 " + fmtYYMMDD(payload.post_date)) : "";
+      const titleLine = payload.title || "사진";
+      const descLine = payload.description ? String(payload.description) : "";
+      return [dateLine, titleLine, descLine].filter(Boolean).join("\n");
+    })(),
     image_path: payload.image_path,
   };
   const { error: err2 } = await sb.from(TABLE).insert([fallback]);
