@@ -3,245 +3,210 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>방랑 길드 | 꿀팁 게시판</title>
+  <title>방랑 길드 - 꿀팁 게시판</title>
   <meta name="description" content="방랑 길드 꿀팁 게시판 (Notion 연동)" />
-  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
+
+  <!-- Pretendard (photos.html과 동일 계열) -->
+  <link rel="stylesheet" as="style" crossorigin
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css" />
+
   <style>
     :root{
-      --bg:#fff0f6;
+      --bg:#fff7fb;
       --card:#ffffff;
-      --card2:#fff6fb;
-      --text:#3b2a30;
-      --muted:#9a7c86;
-      --line:rgba(243,154,178,.25);
+      --line:rgba(0,0,0,.09);
+      --text:#1f1f24;
+      --sub:rgba(31,31,36,.65);
       --brand:#f48fb1;
-      --brand2:#f8bbd0;
-      --shadow: 0 12px 30px rgba(244,143,177,.28);
-      --radius: 22px;
-      --radius2: 18px;
-      --ok:#8fcfb5;
-      --danger:#ff7aa2;
+      --brand2:#b39ddb;
+      --error:#e53935;
+      --ok:#2e7d32;
+      --shadow: 0 14px 38px rgba(0,0,0,.07);
+      --shadow2: 0 30px 70px rgba(0,0,0,.25);
+      --r:16px;
     }
     *{box-sizing:border-box}
-    html,body{margin:0}
     body{
-      font-size:15px;
-      font-family: "Pretendard", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", Arial, sans-serif;
-      color:var(--text);
+      margin:0;
+      font-family:Pretendard Variable, Pretendard, system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;
       background:
-        radial-gradient(1200px 500px at 10% 0%, rgba(244,143,177,.25), transparent 60%),
-        radial-gradient(900px 500px at 90% 10%, rgba(248,187,208,.20), transparent 55%),
-        radial-gradient(800px 500px at 50% 100%, rgba(255,204,102,.10), transparent 55%),
+        radial-gradient(1100px 520px at 10% 0%, rgba(244,143,177,.23), transparent 60%),
+        radial-gradient(1000px 520px at 90% 10%, rgba(179,157,219,.20), transparent 60%),
         var(--bg);
+      color:var(--text);
     }
-    a{color:inherit;text-decoration:none}
-    .topbar{
-      position:sticky;top:0;z-index:50;
-      backdrop-filter: blur(10px);
-      background: linear-gradient(to bottom, rgba(255,240,246,.92), rgba(255,240,246,.70));
-      border-bottom:1px solid var(--line);
-    }
-    .topbar .inner{
-      max-width:1100px;margin:0 auto;padding:14px 18px;
-      display:flex;gap:14px;align-items:center;justify-content:space-between
-    }
-    .brand{display:flex;gap:10px;align-items:center;font-weight:900;letter-spacing:.2px}
-    .badge{
-      font-size:13px;color:var(--muted);
-      padding:4px 10px;border:1px solid rgba(244,143,177,.25);
-      border-radius:999px;background:#fff7fa;
-    }
-    .navRight{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-    .navbtn{
-      font-size:14px;color:var(--muted);
-      padding:8px 10px;border-radius:999px;border:1px solid transparent;
-      background:transparent;
-      cursor:pointer;
-    }
-    .navbtn:hover{color:var(--text);border-color:var(--line);background:#fff7fa}
-    .wrap{max-width:1100px;margin:0 auto;padding:18px 18px 60px}
-    .hero{
-      margin-top:14px;
-      background: linear-gradient(135deg, #ffffff, #ffe9f1);
-      border:1px solid rgba(244,143,177,.25);
-      box-shadow: var(--shadow);
-      border-radius: var(--radius);
-      padding:18px 18px;
-      display:flex;gap:12px;align-items:center;justify-content:space-between;
-      flex-wrap:wrap;
-    }
-    .hero h1{margin:0;font-size:24px;line-height:1.2;color:#d86b94}
-    .hero p{margin:6px 0 0;color:var(--muted);font-size:15px;line-height:1.55}
+    header{max-width:1120px;margin:0 auto;padding:30px 18px 10px}
+    h1{margin:0;font-size:22px;letter-spacing:-0.2px}
+    p{margin:10px 0 0;color:var(--sub);line-height:1.45}
+    main{max-width:1120px;margin:0 auto;padding:18px 18px 36px}
+
     .card{
-      margin-top:14px;
-      border-radius: var(--radius);
-      border:1px solid rgba(244,143,177,.25);
-      background: linear-gradient(180deg, #ffffff, #fff3f8);
-      box-shadow: var(--shadow);
-      padding:16px 14px;
+      background:linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,255,255,.99));
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:18px;
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(8px);
     }
-    .toolbar{
-      display:flex;gap:10px;flex-wrap:wrap;align-items:center;
-      margin:10px 0 12px;
-      justify-content:space-between;
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    hr{border:none;border-top:1px solid rgba(0,0,0,.08);margin:16px 0}
+
+    .btn{
+      appearance:none;
+      border:1px solid rgba(244,143,177,.35);
+      background:rgba(244,143,177,.14);
+      color:var(--text);
+      padding:10px 14px;
+      border-radius:14px;
+      cursor:pointer;
+      font-weight:700;
+      transition: transform .06s ease, background .15s ease, border-color .15s ease, color .15s ease, opacity .15s ease;
+      user-select:none;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      white-space:nowrap;
     }
-    .leftTools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    .rightTools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    .input{
-      width:min(420px, 100%);
-      padding:12px 14px;border-radius:18px;
-      border:1px solid rgba(244,143,177,.25);
-      background:#ffffff;color:var(--text);
-      outline:none;font-size:15px;
+    .btn:hover{background:rgba(244,143,177,.25);border-color:rgba(244,143,177,.55)}
+    .btn:active{transform:translateY(1px)}
+    .btn.secondary{border-color:rgba(0,0,0,.12);background:rgba(255,255,255,.80)}
+    .btn.secondary:hover{background:rgba(244,143,177,.12);color:var(--brand);border-color:rgba(244,143,177,.40)}
+    .btn:disabled{opacity:.65;cursor:not-allowed;transform:none}
+
+    /* 링크 버튼 색상 고정(파란 글씨 방지) */
+    a.btnlink, a.btnlink:visited, a.btnlink:hover, a.btnlink:active{
+      text-decoration:none;
+      color:var(--text);
     }
-    }
+    a.btnlink:hover{ color: var(--brand); }
+
+    /* ===== controls ===== */
     .pillRow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
     .pill{
       cursor:pointer;
-      font-size:13px;color:var(--muted);
-      padding:7px 10px;border-radius:999px;
-      border:1px solid rgba(244,143,177,.25);
-      background:#fff3f8;user-select:none;
-      transition: transform .15s ease, filter .15s ease;
-      white-space:nowrap;
-    }
-    .pill:hover{filter:brightness(1.02);transform:translateY(-1px)}
-    .pill.active{background: linear-gradient(135deg, #f8bbd0, #f48fb1); color:#ffffff; border:none}
-    .metaLine{color:var(--muted);font-size:13px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .list{display:grid;gap:10px}
-    .item{
-      border:1px solid rgba(244,143,177,.18);
-      background:#fffafb;
-      border-radius:18px;
-      padding:12px 12px;
-    }
-    .itemTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-    .title{margin:0;font-weight:900;font-size:16px;line-height:1.35}
-    .tags{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-    .tag{
-      font-size:12px;font-weight:900;
-      padding:4px 8px;border-radius:999px;
-      border:1px solid rgba(244,143,177,.25);
-      color:var(--muted);background:#fff0f6;
-      white-space:nowrap;
-    }
-    /* ===== 태그 컬러 매핑 ===== */
-    .tag.role{background:#e9fbf4;color:#4e8b73;border-color:rgba(78,139,115,.22)}
-    .tag.boss{background:#fff1e9;color:#a55b3e;border-color:rgba(165,91,62,.22)}
-    .tag.dungeon{background:#f3ecff;color:#6a4bbf;border-color:rgba(106,75,191,.22)}
-    .tag.gear{background:#eaf3ff;color:#3e6aa5;border-color:rgba(62,106,165,.22)}
-    .tag.life{background:#fff7e6;color:#8a6a2b;border-color:rgba(138,106,43,.22)}
-    .tag.money{background:#e8fbff;color:#2b6b7a;border-color:rgba(43,107,122,.22)}
-    .tag.event{background:#fde2f0;color:#c94b78;border-color:rgba(201,75,120,.22)}
-    .tag.important{background:#ffe4ec;color:#d94c7a;border-color:rgba(217,76,122,.25)}
-    .tag.misc{background:#f2f2f2;color:#6a6a6a;border-color:rgba(106,106,106,.18)}
-
-    details{border-top:1px dashed rgba(244,143,177,.25);margin-top:10px;padding-top:10px}
-    details summary{cursor:pointer;color:var(--text);font-weight:900;font-size:14px;list-style:none}
-    details summary::-webkit-details-marker{display:none}
-    .content{color:var(--muted);font-size:15px;line-height:1.65;margin-top:10px;overflow-wrap:anywhere;word-break:break-word}
-    .pagination{
-      display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;
-      margin-top:14px;
-    }
-    .pagebtn{
-      cursor:pointer;
-      font-size:13px;font-weight:900;
-      color:var(--muted);
-      padding:8px 10px;border-radius:999px;
-      border:1px solid rgba(244,143,177,.25);
-      background:#fff7fa;
-      min-width:38px;
-    }
-    .pagebtn:hover{filter:brightness(1.02)}
-    .pagebtn.active{background: linear-gradient(135deg, #f8bbd0, #f48fb1); color:#fff; border:none}
-    .pagebtn:disabled{opacity:.45; cursor:not-allowed}
-    .state{
-      padding:14px 12px;
-      border-radius:18px;
-      border:1px dashed rgba(244,143,177,.35);
-      background:#fffafb;
-      color:var(--muted);
       font-size:13px;
-      text-align:center;
+      color:var(--sub);
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(0,0,0,.10);
+      background:rgba(255,255,255,.80);
+      transition: transform .12s ease, filter .12s ease, border-color .12s ease;
+      user-select:none;
+      white-space:nowrap;
     }
+    .pill:hover{filter:brightness(1.02);transform:translateY(-1px);border-color:rgba(244,143,177,.45)}
+    .pill.active{
+      background:rgba(244,143,177,.22);
+      border-color:rgba(244,143,177,.65);
+      color:var(--text);
+      font-weight:900;
+    }
+    .input{
+      width:min(420px, 100%);
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid rgba(0,0,0,.10);
+      background:rgba(255,255,255,.92);
+      font-size:15px;
+      outline:none;
+      transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+    .input:focus{
+      border-color: rgba(244,143,177,.75);
+      box-shadow: 0 0 0 4px rgba(244,143,177,.16);
+      background:#fff;
+    }
+    .metaLine{color:var(--sub);font-size:13px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 
-    /* ===== 텍스트 링크 버튼 ===== */
-    .linkRow{
+    .toolbar{
       display:flex;
-      justify-content:flex-end;
-      gap:10px;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
       flex-wrap:wrap;
     }
-    .textLinkBtn{
-      display:inline-block;
-      font-size:13px;
-      font-weight:800;
-      color:var(--muted);
-      padding:6px 2px;
-      position:relative;
-      text-decoration:none;
-      transition: color .2s ease, transform .2s ease;
-      overflow:hidden;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .textLinkBtn::after{
-      content:"";
-      position:absolute;left:0;bottom:-2px;
-      width:0%;height:1px;
-      background:var(--brand);
-      transition: width .2s ease;
-    }
-    .textLinkBtn::before{
-      content:"";
-      position:absolute;top:0;left:-130%;
-      width:130%;height:100%;
-      background: linear-gradient(120deg, transparent, rgba(255,255,255,.55), transparent);
-      transition: left .45s ease;
-      pointer-events:none;
-    }
-    .textLinkBtn:hover,
-    .textLinkBtn:focus-visible{
-      color:var(--text);
-      transform: translateX(2px);
-    }
-    .textLinkBtn:hover::after,
-    .textLinkBtn:focus-visible::after{width:100%}
-    .textLinkBtn:hover::before,
-    .textLinkBtn:focus-visible::before{left:130%}
 
-    /* ===== 미디어 ===== */
-    .mediaWrap{
-      margin-top:10px;
-      display:grid;
-      gap:10px;
+    /* ===== list ===== */
+    .list{display:grid;gap:14px;margin-top:14px}
+    .item{
+      background:linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.98));
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.06);
     }
+    .itemTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+    .title{margin:0;font-weight:900;font-size:16px;letter-spacing:-0.2px;line-height:1.35}
+    .tags{display:flex;gap:6px;flex-wrap:wrap}
+    .tag{
+      font-size:12px;
+      font-weight:900;
+      padding:5px 9px;
+      border-radius:999px;
+      border:1px solid rgba(0,0,0,.10);
+      color:rgba(31,31,36,.72);
+      background:rgba(244,143,177,.10);
+      white-space:nowrap;
+    }
+
+    /* ===== 태그 컬러 맵핑 (pill + tag 공통 사용) ===== */
+    .role{background:#e9fbf4 !important;color:#3f7b65 !important;border-color:rgba(63,123,101,.22) !important}
+    .boss{background:#fff1e9 !important;color:#a55b3e !important;border-color:rgba(165,91,62,.22) !important}
+    .dungeon{background:#f3ecff !important;color:#6a4bbf !important;border-color:rgba(106,75,191,.22) !important}
+    .gear{background:#eaf3ff !important;color:#3e6aa5 !important;border-color:rgba(62,106,165,.22) !important}
+    .life{background:#fff7e6 !important;color:#8a6a2b !important;border-color:rgba(138,106,43,.22) !important}
+    .money{background:#e8fbff !important;color:#2b6b7a !important;border-color:rgba(43,107,122,.22) !important}
+    .event{background:#fde2f0 !important;color:#c94b78 !important;border-color:rgba(201,75,120,.22) !important}
+    .important{background:#ffe4ec !important;color:#d94c7a !important;border-color:rgba(217,76,122,.25) !important}
+    .misc{background:#f2f2f2 !important;color:#6a6a6a !important;border-color:rgba(106,106,106,.18) !important}
+
+    details{border-top:1px dashed rgba(0,0,0,.10);margin-top:12px;padding-top:12px}
+    details summary{
+      cursor:pointer;
+      font-weight:900;
+      font-size:14px;
+      color:rgba(31,31,36,.92);
+      list-style:none;
+      user-select:none;
+    }
+    details summary::-webkit-details-marker{display:none}
+    .content{
+      margin-top:10px;
+      color:rgba(31,31,36,.74);
+      font-size:15px;
+      line-height:1.65;
+      overflow-wrap:anywhere;
+      word-break:break-word;
+      white-space:pre-wrap;
+    }
+
+    /* ===== media ===== */
+    .mediaWrap{margin-top:12px;display:grid;gap:10px}
     .mediaGrid{
       display:grid;
       grid-template-columns: repeat(4, 1fr);
       gap:10px;
     }
+    @media (max-width:900px){ .mediaGrid{grid-template-columns: repeat(2, 1fr);} }
     .thumb{
-      border:1px solid rgba(244,143,177,.18);
-      background:#fff7fa;
-      border-radius:14px;
+      border:1px solid rgba(0,0,0,.10);
+      background: linear-gradient(135deg, rgba(244,143,177,.12), rgba(179,157,219,.10));
+      border-radius:16px;
       overflow:hidden;
       position:relative;
       aspect-ratio: 1 / 1;
+      cursor: zoom-in;
     }
-    .thumb img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      display:block;
-    }
+    .thumb img{width:100%;height:100%;object-fit:cover;display:block}
     .thumb .label{
       position:absolute;
       left:8px;right:8px;bottom:8px;
-      font-size:11px;font-weight:900;
-      color:rgba(59,42,48,.92);
-      background: rgba(255,255,255,.78);
-      border:1px solid rgba(244,143,177,.22);
+      font-size:11px;
+      font-weight:900;
+      color:rgba(31,31,36,.92);
+      background: rgba(255,255,255,.82);
+      border:1px solid rgba(0,0,0,.10);
       padding:6px 8px;
       border-radius:12px;
       overflow:hidden;
@@ -249,151 +214,57 @@
       white-space:nowrap;
       backdrop-filter: blur(6px);
     }
-    .fileList{
-      display:grid;
-      gap:8px;
-    }
+    .fileList{display:grid;gap:8px}
     .fileItem{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      padding:10px 10px;
-      border-radius:14px;
-      border:1px solid rgba(244,143,177,.18);
-      background:#fff7fa;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:10px 10px;border-radius:14px;
+      border:1px solid rgba(0,0,0,.10);
+      background: rgba(255,255,255,.80);
     }
     .fileItem .name{
-      font-size:12px;
-      font-weight:850;
-      color:var(--text);
-      overflow:hidden;
-      text-overflow:ellipsis;
-      white-space:nowrap;
+      font-size:13px;font-weight:850;color:rgba(31,31,36,.92);
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      max-width:70%;
     }
     .fileItem .dl{
-      font-size:12px;
-      font-weight:900;
-      color:#ffffff;
-      background: linear-gradient(135deg, #f8bbd0, #f48fb1);
-      padding:8px 10px;
-      border-radius:999px;
-      white-space:nowrap;
+      font-size:12px;font-weight:900;color:#fff;
+      background: rgba(244,143,177,.85);
+      padding:8px 10px;border-radius:999px;white-space:nowrap;
+      text-decoration:none;
+      position:relative; overflow:hidden;
     }
+    .fileItem .dl::before{
+      content:"";
+      position:absolute; inset:0;
+      background: linear-gradient(120deg, transparent, rgba(255,255,255,.45), transparent);
+      transform: translateX(-140%);
+      transition: transform .55s ease;
+      pointer-events:none;
+    }
+    .fileItem .dl:hover::before{ transform: translateX(140%); }
 
-    /* lightbox */
-    .lightbox{
-      position:fixed; inset:0;
-      display:none;
-      align-items:center; justify-content:center;
-      background: rgba(20,12,15,.55);
-      z-index:1000;
-      padding:18px;
-    }
-    .lightbox.show{display:flex}
-    .lbCard{
-      max-width:min(980px, 92vw);
-      max-height:90vh;
-      border-radius:22px;
-      overflow:hidden;
-      border:1px solid rgba(255,255,255,.18);
-      background: rgba(255,255,255,.10);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 22px 60px rgba(0,0,0,.25);
-      position:relative;
-    }
-    .lbImg{
-      display:block;
-      max-width:min(980px, 92vw);
-      max-height:80vh;
-      width:auto;
-      height:auto;
-    }
-    .lbBar{
-      display:flex; gap:10px; align-items:center; justify-content:space-between;
-      padding:10px 12px;
-      background: rgba(255,255,255,.82);
-      border-top:1px solid rgba(244,143,177,.22);
-    }
-    .lbTitle{
-      font-size:12px;
-      font-weight:900;
-      color:var(--text);
-      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-      max-width:70vw;
-    }
-    .lbBtn{
-      cursor:pointer;
-      border:1px solid rgba(244,143,177,.25);
-      background:#fff7fa;
-      color:var(--text);
-      font-weight:900;
-      border-radius:999px;
-      padding:8px 10px;
-      font-size:12px;
-    }
-    .lbBtn:hover{filter:brightness(1.02)}
-    .lbClose{
-      position:absolute;
-      top:10px; right:10px;
-      width:40px;height:40px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.22);
-      background: rgba(255,255,255,.18);
-      color:#fff;
-      cursor:pointer;
-      display:flex;align-items:center;justify-content:center;
-      font-size:18px;font-weight:900;
-      backdrop-filter: blur(10px);
-    }
-
-    @media (max-width: 900px){
-      .topbar .inner{justify-content:space-between}
-      .navRight{justify-content:flex-start}
-      .toolbar{gap:12px}
-      .rightTools{width:100%;justify-content:space-between}
-      .input{width:100%}
-      .linkRow{justify-content:center}
-      .mediaGrid{grid-template-columns: repeat(2, 1fr)}
-    }
-  
-    /* ===== 참고링크(Reference URL) ===== */
+    /* refs */
     .refs{
       margin-top:12px;
       padding-top:10px;
-      border-top:1px dashed rgba(244,143,177,.25);
+      border-top:1px dashed rgba(0,0,0,.10);
       display:grid;
       gap:8px;
     }
-    .refTitle{
-      font-size:13px;
-      font-weight:900;
-      color:var(--text);
-    }
-    .refLinks{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-    }
+    .refTitle{font-size:13px;font-weight:900;color:rgba(31,31,36,.92)}
+    .refLinks{display:flex;flex-wrap:wrap;gap:8px}
     .refLink{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      font-size:13px;
-      font-weight:850;
-      color:var(--text);
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid rgba(244,143,177,.22);
-      background:#fff7fa;
-      position:relative;
-      overflow:hidden;
-      transition: transform .18s ease, filter .18s ease;
+      display:inline-flex;align-items:center;gap:6px;
+      font-size:13px;font-weight:850;
+      color:rgba(31,31,36,.92);
+      padding:8px 10px;border-radius:999px;
+      border:1px solid rgba(0,0,0,.10);
+      background: rgba(255,255,255,.80);
+      position:relative; overflow:hidden;
+      text-decoration:none;
+      transition: transform .12s ease, filter .12s ease, border-color .12s ease;
     }
-    .refLink:hover{
-      transform: translateY(-1px);
-      filter: brightness(1.02);
-    }
+    .refLink:hover{transform: translateY(-1px);border-color:rgba(244,143,177,.45)}
     .refLink::before{
       content:"";
       position:absolute; inset:0;
@@ -404,76 +275,162 @@
     }
     .refLink:hover::before{ transform: translateX(140%); }
 
-    /* ===== 태그/필터 pill도 컬러 매핑 적용 ===== */
-    .pill.role{background:#e9fbf4;color:#4e8b73;border-color:rgba(78,139,115,.22)}
-    .pill.boss{background:#fff1e9;color:#a55b3e;border-color:rgba(165,91,62,.22)}
-    .pill.dungeon{background:#f3ecff;color:#6a4bbf;border-color:rgba(106,75,191,.22)}
-    .pill.gear{background:#eaf3ff;color:#3e6aa5;border-color:rgba(62,106,165,.22)}
-    .pill.life{background:#fff7e6;color:#8a6a2b;border-color:rgba(138,106,43,.22)}
-    .pill.money{background:#e8fbff;color:#2b6b7a;border-color:rgba(43,107,122,.22)}
-    .pill.event{background:#fde2f0;color:#c94b78;border-color:rgba(201,75,120,.22)}
-    .pill.important{background:#ffe4ec;color:#d94c7a;border-color:rgba(217,76,122,.25)}
-    .pill.misc{background:#f2f2f2;color:#6a6a6a;border-color:rgba(106,106,106,.18)}
-    </style>
+    /* pagination */
+    .pagerRow{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .btn.page{padding:8px 10px;border-radius:12px}
+    .btn.page.active{background:rgba(244,143,177,.28);border-color:rgba(244,143,177,.65)}
+
+    .state{
+      padding:14px 12px;
+      border-radius:18px;
+      border:1px dashed rgba(0,0,0,.14);
+      background: rgba(255,255,255,.70);
+      color:var(--sub);
+      font-size:13px;
+      text-align:center;
+      margin-top:14px;
+    }
+
+    /* Lightbox (photos 느낌) */
+    .modal-backdrop{
+      position:fixed; inset:0;
+      background: rgba(15, 12, 18, .58);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 16px;
+      z-index: 9999;
+    }
+    .modal-wrap{position:relative; width:min(1120px, 100%);}
+    .xbtn{
+      position:absolute;
+      top: 10px; right: 10px;
+      border: 1px solid rgba(255,255,255,.35);
+      background: rgba(0,0,0,.25);
+      color: rgba(255,255,255,.92);
+      border-radius: 999px;
+      padding: 10px 12px;
+      cursor:pointer;
+      font-weight:900;
+      transition: background .15s ease, transform .06s ease;
+      backdrop-filter: blur(6px);
+      z-index: 2;
+    }
+    .xbtn:hover{ background: rgba(244,143,177,.25); }
+    .xbtn:active{ transform: translateY(1px); }
+
+    .modal{
+      width:100%;
+      background: rgba(255,255,255,.96);
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 24px;
+      box-shadow: var(--shadow2);
+      overflow:hidden;
+      display:grid;
+      grid-template-columns: 1.65fr 1fr;
+    }
+    @media (max-width:860px){ .modal{ grid-template-columns: 1fr; } }
+    .modal-media{
+      background: linear-gradient(135deg, rgba(244,143,177,.12), rgba(179,157,219,.10));
+      display:flex; align-items:center; justify-content:center;
+      padding: 14px;
+    }
+    .modal-media img{
+      width: 100%;
+      height: auto;
+      max-height: 82vh;
+      object-fit: contain;
+      border-radius: 18px;
+      border: 1px solid rgba(0,0,0,.12);
+      background: white;
+      box-shadow: 0 14px 40px rgba(0,0,0,.12);
+    }
+    @media (max-width:860px){ .modal-media img{ max-height: 76vh; } }
+    .modal-side{
+      padding: 18px 18px 16px;
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+    }
+    .modal-title{ font-weight: 900; font-size: 18px; margin: 0; }
+    .modal-meta{ font-size: 13px; color: var(--sub); display:flex; gap:10px; flex-wrap:wrap; }
+    .modal-desc{ font-size: 14px; color: rgba(31,31,36,.78); line-height: 1.55; margin: 0; white-space: pre-wrap; }
+    .modal-actions{ margin-top:auto; display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+
+  </style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="inner">
-      <div class="brand">
-        <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:12px;border:1px solid var(--line);background:#fff7fa;font-weight:900;">⛵</span>
-        <div>
-          <div>방랑 길드</div>
-          <div class="badge">꿀팁 게시판</div>
-        </div>
+  <header>
+    <div class="topbar">
+      <div>
+        <h1>🧭 방랑 길드 꿀팁 게시판</h1>
+        <p>운영진이 노션에 올린 글을 게시판 형태로 정리해요. 태그/검색/페이지/미디어까지 한 번에 ✨</p>
+      </div>
+      <div class="row">
+        <a class="btn secondary btnlink" href="/">🏠 메인으로</a>
+        <button class="btn" id="refreshBtn" type="button">새로고침</button>
       </div>
     </div>
   </header>
 
-  <main class="wrap">
-    <section class="hero">
-      <div>
-        <h1>게임 꿀팁 게시판</h1>
-        <p>운영진이 노션에 올린 글을 게시판 형태로 봐요. (검색/태그/페이지/미디어)</p>
-      </div>
-    </section>
-
+  <main>
     <section class="card">
       <div class="toolbar">
-        <div class="leftTools">
-          <div class="pillRow" id="tagPills"></div>
+        <div style="min-width:280px">
+          <div style="font-weight:900;">태그</div>
+          <div class="metaLine" style="margin-top:6px">원하는 태그만 골라서 볼 수 있어요.</div>
+          <div class="pillRow" id="tagPills" style="margin-top:10px"></div>
         </div>
-        <div class="rightTools">
-          <input class="input" id="searchInput" placeholder="검색 (제목/내용/태그)" />
-          <div class="metaLine" id="countLine"></div>
+
+        <div style="flex:1;min-width:280px">
+          <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+            <div>
+              <div style="font-weight:900;">검색</div>
+              <div class="metaLine" style="margin-top:6px">제목/내용/태그에서 검색돼요.</div>
+            </div>
+            <div class="metaLine" id="countLine"></div>
+          </div>
+          <input class="input" id="searchInput" placeholder="검색 (제목/내용/태그)" style="margin-top:10px" />
         </div>
       </div>
+
+      <hr>
 
       <div id="state" class="state">불러오는 중...</div>
       <div id="list" class="list" style="display:none"></div>
-      <div id="pager" class="pagination" style="display:none"></div>
-    </section>
 
-    <footer style="margin-top:16px;color:var(--muted);font-size:12px;text-align:center;opacity:.9">
-      © 방랑 길드 · tips.html (Notion 연동)
-    </footer>
+      <div class="pagerRow" id="pager" style="display:none">
+        <div class="metaLine">페이지 <span id="pageNow">1</span> / <span id="pageTotal">1</span></div>
+        <div class="row" style="gap:8px">
+          <button class="btn secondary" id="prevPageBtn" type="button">이전</button>
+          <div class="metaLine" id="pageBtns" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+          <button class="btn secondary" id="nextPageBtn" type="button">다음</button>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <!-- lightbox -->
-  <div class="lightbox" id="lightbox" aria-hidden="true">
-    <div class="lbCard" role="dialog" aria-modal="true">
-      <button class="lbClose" id="lbClose" aria-label="닫기">×</button>
-      <img class="lbImg" id="lbImg" alt="미리보기" />
-      <div class="lbBar">
-        <div class="lbTitle" id="lbTitle"></div>
-        <div style="display:flex;gap:8px">
-          <a class="lbBtn" id="lbOpen" target="_blank" rel="noopener">원본 열기</a>
+  <!-- Modal (이미지 크게 보기) -->
+  <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
+    <div class="modal-wrap">
+      <button class="xbtn" id="modalCloseBtn" type="button">✕</button>
+      <div class="modal" role="dialog" aria-modal="true" aria-label="이미지 크게 보기">
+        <div class="modal-media">
+          <img id="modalImg" alt="">
+        </div>
+        <div class="modal-side">
+          <h2 class="modal-title" id="modalTitle"></h2>
+          <div class="modal-meta" id="modalMeta"></div>
+          <p class="modal-desc" id="modalDesc"></p>
+          <div class="modal-actions">
+            <button class="btn secondary" type="button" id="modalOpenBtn">원본 보기</button>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    // ===== utils =====
     const $ = (id) => document.getElementById(id);
 
     function escapeHtml(s){
@@ -485,11 +442,6 @@
         .replaceAll("'","&#39;");
     }
 
-    function toParagraphs(text){
-      const safe = escapeHtml(text||"");
-      return safe.split(/\n+/).map(p=>`<p style="margin:0 0 10px">${p}</p>`).join("") || "";
-    }
-
     function fmtYYMMDD(iso){
       if(!iso) return "";
       const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);
@@ -497,12 +449,16 @@
       return `${m[1].slice(2)}/${m[2]}/${m[3]}`;
     }
 
+    function toParagraphs(text){
+      // content는 pre-wrap로 표시 (노션 줄바꿈 유지)
+      return escapeHtml(text || "");
+    }
+
     function isImageUrl(url){
       return /\.(png|jpg|jpeg|gif|webp)(\?|#|$)/i.test(url || "");
     }
 
     function pickFilesProp(props){
-      // Notion "files" property (Korean/English variants)
       return (
         props["파일과 미디어"]?.files ||
         props["파일"]?.files ||
@@ -516,11 +472,23 @@
     }
 
     function normalizeFile(f){
-      // notion file item: {name, type: "file"|"external", file:{url}, external:{url}}
       const name = f?.name || "첨부파일";
       const url = (f?.type === "external") ? (f?.external?.url) : (f?.file?.url);
       const isImg = isImageUrl(url);
       return { name, url, isImg };
+    }
+
+    function tagClassName(tag){
+      const t = String(tag||"").toLowerCase();
+      if(/사제|힐|힐러|버퍼|전사|궁수|마법|법사|도적|암흑|암흑술사|검|창|총|서포|탱|탱커|딜|딜러/.test(t)) return "role";
+      if(/보스|레이드|던전보스|필드보스/.test(t)) return "boss";
+      if(/던전|인던|파티|공략|트라이|난이도|하드|어려움|일반/.test(t)) return "dungeon";
+      if(/장비|세팅|룬|스탯|옵션|각인|강화|무기|방어구|악세|스킬/.test(t)) return "gear";
+      if(/생활|채집|낚시|요리|제작|재료|연금|공방|농장/.test(t)) return "life";
+      if(/돈|골드|재화|거래|경매|가격|파밍|수급/.test(t)) return "money";
+      if(/이벤트|시즌|출석|한정|콜라보|업데이트/.test(t)) return "event";
+      if(/중요|필독|공지|주의/.test(t)) return "important";
+      return "misc";
     }
 
     function mapPage(p){
@@ -574,7 +542,6 @@
       const fp = pickFilesProp(props);
       const files = (fp || []).map(normalizeFile).filter(x=>x.url);
 
-
       // reference links (URL / 참고링크)
       const urlSingle =
         props["참고링크"]?.url
@@ -615,81 +582,78 @@
       return (data.results || []).map(mapPage);
     }
 
-    // ===== tag color mapping =====
-    function tagClassName(tag){
-      const t = String(tag||"").toLowerCase();
-
-      // 직업/역할
-      if(/사제|힐|힐러|버퍼|전사|궁수|마법|법사|도적|암흑|암흑술사|검|창|총|서포|탱|탱커|딜|딜러/.test(t)) return "role";
-      // 보스/레이드
-      if(/보스|레이드|던전보스|필드보스/.test(t)) return "boss";
-      // 던전/인던/파티
-      if(/던전|인던|파티|공략|트라이|난이도|하드|어려움|일반/.test(t)) return "dungeon";
-      // 장비/세팅/룬/스탯
-      if(/장비|세팅|룬|스탯|옵션|각인|강화|무기|방어구|악세|스킬/.test(t)) return "gear";
-      // 생활/채집/제작
-      if(/생활|채집|낚시|요리|제작|재료|연금|공방|농장/.test(t)) return "life";
-      // 재화/돈/거래
-      if(/돈|골드|재화|거래|경매|가격|파밍|수급/.test(t)) return "money";
-      // 이벤트/시즌
-      if(/이벤트|시즌|출석|한정|콜라보|업데이트/.test(t)) return "event";
-      // 중요
-      if(/중요|필독|공지|주의/.test(t)) return "important";
-      return "misc";
-    }
-
     // ===== state =====
     const stateEl = $("state");
     const listEl  = $("list");
-    const pagerEl = $("pager");
     const pillsEl = $("tagPills");
     const searchEl = $("searchInput");
     const countEl  = $("countLine");
+
+    // pager ui
+    const pagerWrap = $("pager");
+    const pageNowEl = $("pageNow");
+    const pageTotalEl = $("pageTotal");
+    const prevPageBtn = $("prevPageBtn");
+    const nextPageBtn = $("nextPageBtn");
+    const pageBtnsHost = $("pageBtns");
 
     let all = [];
     let filtered = [];
     let activeTag = "all";
     let query = "";
-    let page = 1;
+    let currentPage = 1;
     const PAGE_SIZE = 10;
+    let totalPages = 1;
+
+    function setState(text){
+      stateEl.textContent = text;
+      stateEl.style.display = "block";
+      listEl.style.display = "none";
+      pagerWrap.style.display = "none";
+    }
 
     function buildPills(items){
       const tagSet = new Set();
       items.forEach(it => (it.tags||[]).forEach(t => tagSet.add(t)));
       const tags = Array.from(tagSet).sort((a,b)=> a.localeCompare(b, "ko"));
-      const pillHtml = [
+
+      const html = [
         `<span class="pill active" data-tag="all">전체</span>`,
         ...tags.map(t => `<span class="pill ${tagClassName(t)}" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</span>`)
       ].join("");
-      pillsEl.innerHTML = pillHtml;
 
-      pillsEl.addEventListener("click", (e)=>{
+      pillsEl.innerHTML = html;
+
+      pillsEl.onclick = (e)=>{
         const pill = e.target.closest(".pill");
         if(!pill) return;
         [...pillsEl.querySelectorAll(".pill")].forEach(p=>p.classList.remove("active"));
         pill.classList.add("active");
         activeTag = pill.dataset.tag || "all";
-        page = 1;
-        apply();
-      });
+        currentPage = 1;
+        applyAndRender();
+      };
     }
 
-    function apply(){
+    function applyAndRender(){
       const q = (query||"").trim().toLowerCase();
+
       filtered = all.filter(it=>{
         const tagOk = (activeTag==="all") ? true : (it.tags||[]).includes(activeTag);
         if(!tagOk) return false;
         if(!q) return true;
+
         const hay = [
           it.title || "",
           it.body || "",
           it.category || "",
           ...(it.tags||[])
         ].join(" ").toLowerCase();
+
         return hay.includes(q);
       });
 
-      // 최신순: date(작성일) 우선, 없으면 title로 안정 정렬
+      // 최신순 (date 우선, 없으면 title 안정 정렬)
       filtered.sort((a,b)=>{
         const ad = a.date || "";
         const bd = b.date || "";
@@ -699,7 +663,6 @@
 
       render();
     }
-
 
     function renderRefs(refs){
       if(!refs || !refs.length) return "";
@@ -726,7 +689,6 @@
       `;
     }
 
-
     function renderMedia(files, postTitle){
       if(!files || !files.length) return "";
       const imgs = files.filter(f=>f.isImg);
@@ -734,12 +696,14 @@
 
       const imgGrid = imgs.length ? `
         <div class="mediaGrid">
-          ${imgs.map((f, idx)=>`
-            <a class="thumb" href="${escapeHtml(f.url)}" target="_blank" rel="noopener"
-               data-lb="1" data-url="${escapeHtml(f.url)}" data-title="${escapeHtml(postTitle)} · ${escapeHtml(f.name)}">
+          ${imgs.map(f=>`
+            <div class="thumb" role="button" tabindex="0"
+                 data-action="img"
+                 data-url="${escapeHtml(f.url)}"
+                 data-title="${escapeHtml(postTitle)} · ${escapeHtml(f.name)}">
               <img src="${escapeHtml(f.url)}" alt="${escapeHtml(f.name)}" loading="lazy" />
               <div class="label">${escapeHtml(f.name)}</div>
-            </a>
+            </div>
           `).join("")}
         </div>
       ` : "";
@@ -755,12 +719,51 @@
         </div>
       ` : "";
 
-      return `
-        <div class="mediaWrap">
-          ${imgGrid}
-          ${docList}
-        </div>
-      `;
+      return `<div class="mediaWrap">${imgGrid}${docList}</div>`;
+    }
+
+    function renderPager(){
+      const total = filtered.length;
+      totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+      currentPage = Math.min(Math.max(1, currentPage), totalPages);
+
+      pageNowEl.textContent = String(currentPage);
+      pageTotalEl.textContent = String(totalPages);
+
+      prevPageBtn.disabled = currentPage <= 1;
+      nextPageBtn.disabled = currentPage >= totalPages;
+
+      pageBtnsHost.innerHTML = "";
+      const maxBtns = 7;
+      let start = Math.max(1, currentPage - Math.floor(maxBtns/2));
+      let end = Math.min(totalPages, start + maxBtns - 1);
+      start = Math.max(1, end - maxBtns + 1);
+
+      for(let p=start; p<=end; p++){
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "btn secondary page" + (p===currentPage ? " active" : "");
+        b.textContent = String(p);
+        b.onclick = ()=>{
+          currentPage = p;
+          render();
+          window.scrollTo({ top: 0, behavior:"smooth" });
+        };
+        pageBtnsHost.appendChild(b);
+      }
+
+      prevPageBtn.onclick = ()=>{
+        if(currentPage<=1) return;
+        currentPage -= 1;
+        render();
+        window.scrollTo({ top: 0, behavior:"smooth" });
+      };
+      nextPageBtn.onclick = ()=>{
+        if(currentPage>=totalPages) return;
+        currentPage += 1;
+        render();
+        window.scrollTo({ top: 0, behavior:"smooth" });
+      };
     }
 
     function render(){
@@ -768,145 +771,113 @@
       countEl.textContent = total ? `총 ${total}개` : "";
 
       if(!total){
-        stateEl.style.display = "block";
-        listEl.style.display = "none";
-        pagerEl.style.display = "none";
-        stateEl.textContent = "표시할 꿀팁이 없어요. (태그/검색 조건을 확인해봐요!)";
+        setState("표시할 꿀팁이 없어요. (태그/검색 조건을 확인해봐요!)");
         return;
       }
 
-      const totalPages = Math.ceil(total / PAGE_SIZE);
-      if(page > totalPages) page = totalPages;
-
-      const start = (page-1)*PAGE_SIZE;
+      const start = (currentPage-1) * PAGE_SIZE;
       const items = filtered.slice(start, start + PAGE_SIZE);
 
       stateEl.style.display = "none";
       listEl.style.display = "grid";
-      pagerEl.style.display = (totalPages > 1) ? "flex" : "none";
+      pagerWrap.style.display = (Math.ceil(total / PAGE_SIZE) > 1) ? "flex" : "none";
 
       listEl.innerHTML = items.map(it=>{
-        const tags = (it.tags||[]).slice(0, 10).map(t=>{
-          const cls = tagClassName(t);
-          return `<span class="tag ${cls}">${escapeHtml(t)}</span>`;
-        }).join("");
-
+        const date = it.date ? `<span class="tag misc">📅 ${escapeHtml(fmtYYMMDD(it.date))}</span>` : "";
         const cat  = it.category ? `<span class="tag ${tagClassName(it.category)}">${escapeHtml(it.category)}</span>` : "";
-        const date = it.date ? `<span>📅 ${escapeHtml(fmtYYMMDD(it.date))}</span>` : "";
+        const tags = (it.tags||[]).slice(0, 12).map(t=>`<span class="tag ${tagClassName(t)}">${escapeHtml(t)}</span>`).join("");
         const media = renderMedia(it.files, it.title);
+        const refs = renderRefs(it.refs);
 
         return `
           <div class="item">
             <div class="itemTop">
-              <div style="width:100%">
+              <div style="min-width:240px;flex:1">
                 <p class="title">${escapeHtml(it.title)}</p>
-                <div class="metaLine" style="margin-top:8px">
-                  ${cat} ${tags} ${date}
-                </div>
+                <div class="tags" style="margin-top:10px">${cat}${tags}${date}</div>
               </div>
             </div>
             <details>
               <summary>내용 보기</summary>
               <div class="content">${toParagraphs(it.body)}</div>
               ${media}
-              ${renderRefs(it.refs)}
+              ${refs}
             </details>
           </div>
         `;
       }).join("");
 
-      // pager
-      if(totalPages > 1){
-        const maxBtns = 7;
-        let startP = Math.max(1, page - Math.floor(maxBtns/2));
-        let endP = Math.min(totalPages, startP + maxBtns - 1);
-        startP = Math.max(1, endP - maxBtns + 1);
-
-        const btns = [];
-        btns.push(`<button class="pagebtn" ${page===1?'disabled':''} data-page="${page-1}">이전</button>`);
-        for(let p=startP; p<=endP; p++){
-          btns.push(`<button class="pagebtn ${p===page?'active':''}" data-page="${p}">${p}</button>`);
-        }
-        btns.push(`<button class="pagebtn" ${page===totalPages?'disabled':''} data-page="${page+1}">다음</button>`);
-        pagerEl.innerHTML = btns.join("");
-
-        pagerEl.onclick = (e)=>{
-          const b = e.target.closest(".pagebtn");
-          if(!b || b.disabled) return;
-          const next = parseInt(b.dataset.page, 10);
-          if(!Number.isFinite(next)) return;
-          page = Math.min(totalPages, Math.max(1, next));
-          render();
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        };
-      }
+      renderPager();
     }
 
-    // search
-    let searchTimer = null;
+    // Modal
+    let modal = { open:false, url:"", title:"" };
+
+    function openModal(url, title){
+      $("modalImg").src = url;
+      $("modalTitle").textContent = title || "이미지";
+      $("modalMeta").textContent = "";
+      $("modalDesc").textContent = "";
+      $("modalBackdrop").style.display = "flex";
+      $("modalBackdrop").setAttribute("aria-hidden","false");
+      $("modalOpenBtn").onclick = ()=> window.open(url, "_blank", "noopener");
+      modal = { open:true, url, title };
+    }
+    function closeModal(){
+      $("modalBackdrop").style.display = "none";
+      $("modalBackdrop").setAttribute("aria-hidden","true");
+      $("modalImg").src = "";
+      modal = { open:false, url:"", title:"" };
+    }
+    $("modalCloseBtn").addEventListener("click", closeModal);
+    $("modalBackdrop").addEventListener("click", (e)=>{ if(e.target === $("modalBackdrop")) closeModal(); });
+    document.addEventListener("keydown", (e)=>{
+      const isOpen = $("modalBackdrop").getAttribute("aria-hidden") === "false";
+      if(e.key === "Escape" && isOpen) closeModal();
+    });
+
+    document.addEventListener("click", (e)=>{
+      const t = e.target.closest('[data-action="img"]');
+      if(!t) return;
+      const url = t.getAttribute("data-url");
+      const title = t.getAttribute("data-title") || "";
+      if(url) openModal(url, title);
+    });
+
+    // Search debounce
+    let timer = null;
     searchEl.addEventListener("input", ()=>{
-      clearTimeout(searchTimer);
-      searchTimer = setTimeout(()=>{
+      clearTimeout(timer);
+      timer = setTimeout(()=>{
         query = searchEl.value || "";
-        page = 1;
-        apply();
+        currentPage = 1;
+        applyAndRender();
       }, 120);
     });
 
-    // lightbox behavior
-    const lb = $("lightbox");
-    const lbImg = $("lbImg");
-    const lbTitle = $("lbTitle");
-    const lbOpen = $("lbOpen");
-    const lbClose = $("lbClose");
-
-    function openLightbox(url, title){
-      lbImg.src = url;
-      lbImg.alt = title || "미리보기";
-      lbTitle.textContent = title || "";
-      lbOpen.href = url;
-      lb.classList.add("show");
-      lb.setAttribute("aria-hidden", "false");
-      document.body.style.overflow = "hidden";
+    async function loadTips(){
+      try{
+        setState("불러오는 중...");
+        all = await fetchTips();
+        buildPills(all);
+        query = searchEl.value || "";
+        activeTag = "all";
+        currentPage = 1;
+        // reset pills active state
+        applyAndRender();
+      }catch(e){
+        setState("꿀팁 불러오기 실패: " + (e?.message || String(e)));
+        console.error(e);
+      }
     }
-    function closeLightbox(){
-      lb.classList.remove("show");
-      lb.setAttribute("aria-hidden", "true");
-      document.body.style.overflow = "";
-      lbImg.src = "";
-    }
-    lbClose.addEventListener("click", closeLightbox);
-    lb.addEventListener("click", (e)=>{
-      if(e.target === lb) closeLightbox();
-    });
-    window.addEventListener("keydown", (e)=>{
-      if(e.key === "Escape" && lb.classList.contains("show")) closeLightbox();
-    });
 
-    // delegate clicks for thumbnails
-    document.addEventListener("click", (e)=>{
-      const a = e.target.closest('a[data-lb="1"]');
-      if(!a) return;
-      e.preventDefault();
-      const url = a.getAttribute("data-url") || a.href;
-      const title = a.getAttribute("data-title") || "";
-      if(url) openLightbox(url, title);
+    $("refreshBtn").addEventListener("click", ()=>{
+      // UX: soft refresh (데이터만 다시)
+      loadTips();
     });
 
     // init
-    (async ()=>{
-      try{
-        stateEl.textContent = "불러오는 중...";
-        all = await fetchTips();
-        buildPills(all);
-        apply();
-      }catch(e){
-        stateEl.style.display = "block";
-        listEl.style.display = "none";
-        pagerEl.style.display = "none";
-        stateEl.textContent = "꿀팁 불러오기 실패: " + (e?.message || String(e));
-      }
-    })();
+    loadTips();
   </script>
 </body>
 </html>
