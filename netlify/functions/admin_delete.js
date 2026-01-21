@@ -61,17 +61,17 @@ exports.handler = async (event) => {
     catch { return json(400, { error: "Invalid JSON body", rawBody: event.body || "" }); }
 
     const token = body?.token;
-    const id = body?.id;
+    const incomingId = body?.id;      // 프론트에서 넘어온 값(지금은 uuid처럼 보임)
     const rawPath = body?.path;
 
     if (!token || token !== ADMIN_TOKEN) {
       return json(401, { error: "Unauthorized" });
     }
 
-    const idMissing = (id === undefined || id === null || String(id).trim() === "");
+    const idMissing = (incomingId === undefined || incomingId === null || String(incomingId).trim() === "");
     const pathMissing = (rawPath === undefined || rawPath === null || String(rawPath).trim() === "");
     if (idMissing || pathMissing) {
-      return json(400, { error: "Missing id or path", debug: { got_id: id, got_path: rawPath } });
+      return json(400, { error: "Missing id or path", debug: { got_id: incomingId, got_path: rawPath } });
     }
 
     const BUCKET = "bangrang-photos";
@@ -83,21 +83,54 @@ exports.handler = async (event) => {
 
     const normalizedPath = normalizePath(rawPath, BUCKET);
 
-    // 0) DB에서 존재 확인
-    const { data: row, error: getErr } = await supabase
-      .from(TABLE)
-      .select("id,image_path")
-      .eq("id", id)
-      .maybeSingle();
+    // ✅ 0) DB row 찾기: (1) id로 찾아보고, (2) 안 되면 uuid 계열 컬럼들로도 찾아봄
+    //    찾은 row의 "진짜 PK(id)" 값을 finalDeleteId로 사용한다.
+    let row = null;
+    let findMode = "id";
 
-    if (getErr) {
-      return json(500, { error: "DB lookup failed", details: getErr });
+    // 0-1) 우선 id로 조회 (일반적인 PK)
+    {
+      const { data, error } = await supabase
+        .from(TABLE)
+        .select("id,image_path")
+        .eq("id", incomingId)
+        .maybeSingle();
+
+      if (error) return json(500, { error: "DB lookup failed", details: error, debug: { step: "lookup_by_id" } });
+      row = data || null;
     }
+
+    // 0-2) 못 찾으면 uuid 가능성 컬럼들로 재시도
+    // (테이블에 따라 컬럼명이 다를 수 있어서 흔한 이름들을 순서대로 시도)
+    const altCols = ["uuid", "post_uuid", "post_id", "uid"];
     if (!row) {
-      return json(404, { error: "Post not found", db_deleted: 0, debug: { id } });
+      for (const col of altCols) {
+        const { data, error } = await supabase
+          .from(TABLE)
+          .select("id,image_path")
+          .eq(col, incomingId)
+          .maybeSingle();
+
+        // 컬럼이 없으면 에러가 날 수 있는데, 그건 그냥 다음 컬럼을 시도
+        if (error) {
+          // "column does not exist" 류는 무시하고 다음으로
+          continue;
+        }
+        if (data) {
+          row = data;
+          findMode = col;
+          break;
+        }
+      }
     }
 
-    // 1) Storage 파일 삭제 (DB 경로 우선)
+    if (!row) {
+      return json(404, { error: "Post not found", debug: { incomingId } });
+    }
+
+    const finalDeleteId = row.id; // ✅ DB에서 실제로 삭제할 PK
+
+    // ✅ 1) Storage 삭제 (DB 경로 우선)
     const pathFromDb = row.image_path ? normalizePath(row.image_path, BUCKET) : "";
     const pathToDelete = pathFromDb || normalizedPath;
 
@@ -110,29 +143,41 @@ exports.handler = async (event) => {
       return json(500, {
         error: "Storage delete failed",
         details: delErr,
-        debug: { bucket: BUCKET, id, rawPath, normalizedPath, pathFromDb, pathToDelete, delData },
+        debug: { bucket: BUCKET, incomingId, findMode, finalDeleteId, rawPath, normalizedPath, pathFromDb, pathToDelete, delData },
       });
     }
 
-    // 2) DB row 삭제
+    // ✅ 2) DB 삭제는 무조건 PK(id)로 진행
     const { data: deletedRows, error: dbErr } = await supabase
       .from(TABLE)
       .delete()
-      .eq("id", id)
+      .eq("id", finalDeleteId)
       .select("id");
 
     if (dbErr) {
-      return json(500, { error: "DB delete failed", details: dbErr });
+      return json(500, { error: "DB delete failed", details: dbErr, debug: { finalDeleteId } });
     }
 
     const db_deleted = Array.isArray(deletedRows) ? deletedRows.length : 0;
     const storage_removed = Array.isArray(delData) ? delData.length : 0;
 
     if (db_deleted === 0) {
-      return json(500, { error: "DB delete returned 0 rows", db_deleted, storage_removed, debug: { id } });
+      return json(500, {
+        error: "DB delete returned 0 rows",
+        db_deleted,
+        storage_removed,
+        debug: { incomingId, findMode, finalDeleteId },
+      });
     }
 
-    return json(200, { ok: true, db_deleted, storage_removed, deleted_id: id, deleted_path: pathToDelete });
+    return json(200, {
+      ok: true,
+      db_deleted,
+      storage_removed,
+      deleted_id: finalDeleteId,
+      deleted_path: pathToDelete,
+      debug: { incomingId, findMode },
+    });
   } catch (e) {
     return json(500, { error: "Server error", details: String(e) });
   }
