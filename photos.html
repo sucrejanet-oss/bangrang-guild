@@ -233,11 +233,11 @@
         try{ data = JSON.parse(text); }catch(e){ data = { raw: text }; }
 
         if(!res.ok){
-          setStatus("삭제 실패: " + (data.error || res.statusText), true);
+          const dbg = data && data.debug ? ` / debug: ${JSON.stringify(data.debug)}` : "";
+          setStatus("삭제 실패: " + (data.error || res.statusText) + dbg, true);
           console.error("admin_delete failed", { status: res.status, statusText: res.statusText, data });
           return false;
         }
-
         setStatus(`삭제 완료 ✅ (DB:${data.db_deleted} / 파일:${data.storage_removed||0})`);
         await listPhotos();
         return true;
