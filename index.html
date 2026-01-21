@@ -1,61 +1,815 @@
-
 <!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>방랑 길드</title>
-  <link rel="preconnect" href="https://cdn.jsdelivr.net">
-  <style>
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Noto Sans KR,sans-serif;background:#fff7fb;color:#1f1f24}
-    header{padding:24px;text-align:center}
-    h1{margin:0}
-    main{max-width:1100px;margin:0 auto;padding:16px}
-    .section{margin-top:28px}
-    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-    @media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}}
-    @media(max-width:500px){.grid{grid-template-columns:1fr}}
-    .card{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.08)}
-    .thumb{aspect-ratio:1/1}
-    .thumb img{width:100%;height:100%;object-fit:cover}
-    .row{display:flex;justify-content:space-between;align-items:center}
-    a.btn{display:inline-block;margin-top:12px;padding:10px 14px;border-radius:12px;background:#f48fb1;color:#fff;text-decoration:none;font-weight:700}
+  <title>방랑 길드 | 마비노기 모바일</title>
+  <meta name="description" content="마비노기 모바일 라사 서버 방랑 길드 공지 & 게임 꿀팁" />
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
+    <style>
+    :root{
+      --bg:#fff0f6;
+
+      --card:#ffffff;
+      --card2:#fff6fb;
+
+      --text:#3b2a30;
+      --muted:#9a7c86;
+      --line:rgba(243,154,178,.25);
+
+      --brand:#f48fb1;
+      --brand2:#f8bbd0;
+      --warn:#ffb3a7;
+      --danger:#ff7aa2;
+      --ok:#8fcfb5;
+
+      --shadow: 0 12px 30px rgba(244,143,177,.28);
+      --radius: 22px;
+      --radius2: 18px;
+    }
+    *{box-sizing:border-box}
+    html,body{
+      margin:0;
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont,
+                   "Segoe UI", Roboto, "Noto Sans KR",
+                   "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 500px at 10% 0%, rgba(244,143,177,.25), transparent 60%),
+        radial-gradient(900px 500px at 90% 10%, rgba(248,187,208,.20), transparent 55%),
+        var(--bg);
+    }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", Arial, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 500px at 10% 0%, rgba(122,162,255,.20), transparent 60%),
+        radial-gradient(900px 500px at 90% 10%, rgba(155,255,214,.12), transparent 55%),
+        radial-gradient(800px 500px at 50% 100%, rgba(255,204,102,.10), transparent 55%),
+        var(--bg);
+    }
+    a{color:inherit;text-decoration:none}
+    .wrap{max-width:1100px;margin:0 auto;padding:22px 18px 60px}
+    .topbar{
+      position:sticky;top:0;z-index:50;
+      backdrop-filter: blur(10px);
+      background: linear-gradient(to bottom, rgba(255,240,246,.92), rgba(255,240,246,.70));
+      border-bottom:1px solid var(--line);
+    }
+    .topbar .inner{max-width:1100px;margin:0 auto;padding:14px 18px;display:flex;gap:14px;align-items:center;justify-content:space-between}
+    .brand{
+      display:flex;gap:10px;align-items:center;
+      font-weight:800;letter-spacing:.2px
+    }
+    .badge{
+      font-size:12px;
+      color:var(--muted);
+      padding:4px 10px;
+      border:1px solid rgba(244,143,177,.25);
+      border-radius:999px;
+      background:#fff7fa;
+    }
+    nav{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .navbtn{
+      font-size:13px;color:var(--muted);
+      padding:8px 10px;border-radius:999px;
+      border:1px solid transparent;
+    }
+    .navbtn:hover{color:var(--text);border-color:var(--line);background:#fff7fa}
+    .hero{
+      margin-top:18px;
+      background: linear-gradient(135deg, #ffffff, #ffe9f1);
+      border:1px solid rgba(244,143,177,.25);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      padding:26px 22px;
+      display:grid;grid-template-columns: 1.2fr .8fr;gap:18px;
+    }
+    .hero h1{margin:0 0 8px;font-size:28px;line-height:1.15}
+    .hero p{margin:0;color:var(--muted);line-height:1.55}
+    .chips{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+    .chip{
+      font-size:12px;
+      padding:7px 10px;border-radius:999px;
+      border:1px solid var(--line);
+      background:#fff7fa;
+      color:var(--muted)
+    }
+    .heroCard{
+      border-radius: var(--radius2);
+      border:1px solid rgba(244,143,177,.18);
+      background:#fffafb;
+      padding:14px 14px;
+    }
+    .kv{
+      display:grid;gap:10px
+    }
+    .kvRow{
+      display:flex;justify-content:space-between;gap:12px;
+      padding:10px 10px;border-radius:12px;
+      border:1px solid rgba(255,255,255,.07);
+      background:#fff7fa
+    }
+    .kvRow .k{color:var(--muted);font-size:12px}
+    .kvRow .v{font-weight:700;font-size:13px}
+    .ctaRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .btn{
+      cursor:pointer;
+      border:1px solid rgba(244,143,177,.35);
+      background:#fff5f9;
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:16px;
+      font-weight:700;
+      font-size:13px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+    }
+    .btn:hover{filter:brightness(1.02)}
+    .btn.primary{
+      background: linear-gradient(135deg, #f8bbd0, #f48fb1);
+      color:#ffffff;
+      border:none;
+      box-shadow: 0 6px 16px rgba(244,143,177,.35);
+    }
+    .grid{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    section.card{
+      border-radius: var(--radius);
+      border:1px solid rgba(244,143,177,.25);
+      background: linear-gradient(180deg, #ffffff, #fff3f8);
+      box-shadow: var(--shadow);
+      padding:18px 16px;
+    }
+    section.card h2{margin:0 0 10px;font-size:18px}
+    .sub{color:var(--muted);font-size:13px;margin:0 0 14px;line-height:1.5}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0 12px}
+    .pill{
+      cursor:pointer;
+      font-size:12px;
+      color:var(--muted);
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(244,143,177,.25);
+      background:#fff3f8;
+      user-select:none;
+    }
+    .pill.active{background: linear-gradient(135deg, #f8bbd0, #f48fb1); color:#ffffff; border:none}
+    .input{
+      width:100%;
+      padding:10px 12px;
+      border-radius:16px;
+      border:1px solid rgba(244,143,177,.25);
+      background:#ffffff;
+      color:var(--text);
+      outline:none;
+      font-size:13px;
+    }
+    .list{display:grid;gap:10px}
+    .item{
+      border:1px solid rgba(244,143,177,.18);
+      background:#fffafb;
+      border-radius:18px;
+      padding:12px 12px;
+    }
+    .itemTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+    .tag{
+      font-size:11px;
+      font-weight:800;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(244,143,177,.25);
+      color:var(--muted);
+      background:#fff0f6;
+      white-space:nowrap;
+    }
+    .tag.important{background:#ffe4ec; color:#d94c7a; border-color:rgba(217,76,122,.25)}
+    .tag.event{background:#fde2f0; color:#c94b78; border-color:rgba(201,75,120,.22)}
+    .tag.ops{background:#ffeaf2; color:#b85a7c; border-color:rgba(184,90,124,.22)}
+    .tag.tip{background:#e9fbf4; color:#4e8b73; border-color:rgba(78,139,115,.22)}
+    .title{margin:0;font-weight:850;font-size:14px;line-height:1.35}
+    .meta{margin-top:6px;color:var(--muted);font-size:12px;display:flex;gap:10px;flex-wrap:wrap}
+    details{border-top:1px dashed rgba(255,255,255,.10);margin-top:10px;padding-top:10px}
+    details summary{cursor:pointer;color:var(--text);font-weight:800;font-size:13px;list-style:none}
+    details summary::-webkit-details-marker{display:none}
+    .content{color:var(--muted);font-size:13px;line-height:1.6;margin-top:10px}
+    footer{
+      margin-top:18px;color:var(--muted);font-size:12px;
+      padding: 18px 10px 0;
+      text-align:center;opacity:.9
+    }
+    .twoCol{
+      display:grid;grid-template-columns:1fr 1fr;gap:10px
+    }
+    .miniCard{
+      border:1px solid rgba(244,143,177,.18);
+      background:#fffafb;
+      border-radius:18px;
+      padding:12px;
+    }
+    .miniCard h3{margin:0 0 6px;font-size:14px}
+    .miniCard p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
+
+/* ===== 러블리 마무리 ===== */
+section.card h2{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  color:#d86b94;
+}
+.hero h1{color:#d86b94}
+.emoji{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  filter:saturate(.75) brightness(1.08);
+}
+
+    .btn.ribbon{
+      position:relative;
+      padding-left:14px;
+      padding-right:14px;
+      border-radius:999px;
+      box-shadow: 0 10px 22px rgba(244,143,177,.28);
+    }
+    .btn.ribbon::before,
+    .btn.ribbon::after{
+      content:"";
+      position:absolute;
+      top:50%;
+      width:10px;height:10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.75);
+      transform:translateY(-50%);
+      filter:blur(.1px);
+    }
+    .btn.ribbon::before{left:10px}
+    .btn.ribbon::after{right:10px}
+    .btn.ribbon:hover{transform:translateY(-1px)}
+
+
+    
+    /* Mobile-safe wrapping for long text/URLs */
+    .card p, .miniCard p, .content, .meta, .kvRow .v{
+      overflow-wrap:anywhere;
+      word-break:break-word;
+    }
+    a{
+      overflow-wrap:anywhere;
+      word-break:break-word;
+    }
+
+
+    @media (max-width: 900px){
+      .hero{grid-template-columns:1fr}
+      .grid{grid-template-columns:1fr}
+      nav{justify-content:flex-start}
+      .twoCol{grid-template-columns:1fr}
+
+    }
   </style>
 </head>
 <body>
-<header>
-  <h1>🌸 방랑 길드</h1>
-  <p>마비노기 모바일 · 자유롭고 따뜻한 길드</p>
-</header>
+  <header class="topbar">
+    <div class="inner">
+      <div class="brand">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:12px;border:1px solid var(--line);background:#fff7fa;font-weight:900;">🧭</span>
+        <div>
+          <div>방랑 길드</div>
+          <div class="badge">Mabinogi Mobile · 라사 서버</div>
+        </div>
+      </div>
+      <nav>
+        <a class="navbtn" href="#home">홈</a>
+        <a class="navbtn" href="#notice">공지사항</a>
+        <a class="navbtn" href="#tips">게임꿀팁</a>
+        <a class="navbtn" href="#about">길드소개</a>
+        <a class="navbtn" href="#join">길드안내</a>
+      </nav>
+    </div>
+  </header>
 
-<main>
-  <section class="section">
-    <h2>📷 최근 사진</h2>
-    <div id="photos" class="grid"></div>
-    <a class="btn" href="/photos.html">사진 게시판 바로가기</a>
-  </section>
-</main>
+  <main class="wrap" id="home">
+    <section class="hero">
+      <div>
+        <h1>각자의 속도로, 오래 함께 가는 길드 <span style="color:var(--brand)">방랑</span></h1>
+        <p>
+          속도보다 지속, 경쟁보다 호흡. <br/>
+          공지와 꿀팁은 여기서 한 번에 확인하고, 게임은 편하게 즐겨요.
+        </p>
+        <div class="chips">
+          <span class="chip">친목 & 협력</span>
+          <span class="chip">라이트 ~ 중간 하드</span>
+          <span class="chip">정보 공유</span>
+          <span class="chip">서로 존중</span>
+        </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/supabase_config.js"></script>
-<script>
-  const supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-  const BUCKET = "bangrang-photos";
-  const TABLE = "photo_posts";
+        <div class="ctaRow">
+          <a class="btn primary" href="#notice"><span class="emoji">📢</span> 공지 보러가기</a>
+          <a class="btn" href="#tips"><span class="emoji">🎮</span> 꿀팁 보러가기</a>
+        </div>
+      </div>
 
-  async function loadPhotos(){
-    const { data } = await supabase.from(TABLE).select("*").order("created_at",{ascending:false}).limit(6);
-    const wrap = document.getElementById("photos");
-    if(!data || data.length===0){wrap.innerHTML="<p>아직 사진이 없어요</p>";return;}
-    data.forEach(r=>{
-      const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(r.image_path);
-      const d = document.createElement("div");
-      d.className="card";
-      d.innerHTML = `<div class="thumb"><img src="${pub.publicUrl}"></div>`;
-      wrap.appendChild(d);
+      <div class="heroCard">
+        <div class="kv">
+          <div class="kvRow">
+            <div class="k">서버</div>
+            <div class="v">라사</div>
+          </div>
+          <div class="kvRow">
+            <div class="k">분위기</div>
+            <div class="v">유쾌 + 매너</div>
+          </div>
+          <div class="kvRow">
+            <div class="k">운영</div>
+            <div class="v">열린 의견 수용</div>
+          </div>
+          <div class="kvRow">
+            <div class="k">가입 문의</div>
+            <div class="v">길마 '군림' 귓</div>
+          </div>
+        </div>
+        <div class="ctaRow">
+          <button class="btn" id="copyInvite">길드 홍보 문구 복사</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="grid">
+      <!-- 공지사항 -->
+      <section class="card" id="notice">
+        <h2><span class="emoji">📢</span> 공지사항</h2>
+        <p class="sub">운영/이벤트/중요 공지를 빠르게 확인할 수 있어요.</p>
+
+        <div class="toolbar" id="noticeFilters">
+          <span class="pill active" data-filter="all">전체</span>
+          <span class="pill" data-filter="ops">운영</span>
+          <span class="pill" data-filter="event">이벤트</span>
+          <span class="pill" data-filter="important">중요</span>
+        </div>
+
+        <div class="list" id="noticeList"></div>
+      </section>
+
+      <!-- 게임 꿀팁 -->
+      <section class="card" id="tips">
+        <h2><span class="emoji">🎮</span> 게임 꿀팁</h2>
+        <p class="sub">길드원들이 유용하게 사용한 팁을 카테고리별로 모아놨어요.</p>
+
+        <div class="toolbar">
+          <input class="input" id="tipSearch" placeholder="검색: 예) 힐러, 룬, 던전, 이벤트, 초보…" />
+        </div>
+
+        <div class="toolbar" id="tipFilters">
+          <span class="pill active" data-filter="all">전체</span>
+          <span class="pill" data-filter="생활">생활</span>
+          <span class="pill" data-filter="데코">데코</span>
+          <span class="pill" data-filter="캐릭터">캐릭터</span>
+          <span class="pill" data-filter="레이드">레이드</span>
+          <span class="pill" data-filter="어비스">어비스</span>
+        </div>
+
+        <div class="list" id="tipList"></div>
+      </section>
+      <!-- 📷 사진 게시판 (노션 연동) -->
+      <section class="card" id="photos">
+        <h2><span class="emoji">📷</span> 사진 게시판</h2>
+        <p class="sub">길드원들의 스크린샷/추억을 모아봐요. ✨ 최근 사진 6장 미리보기!</p>
+
+        <div id="photoState" class="sub" style="margin-top:10px;">불러오는 중...</div>
+        <div id="photoPreview" class="grid" style="margin-top:14px; display:none;"></div>
+
+        <div class="row" style="justify-content:flex-end; margin-top:12px;">
+          <a class="btn primary ribbon" href="/photos.html"><span class="emoji">📷</span> 사진게시판 바로가기</a>
+        </div>
+      </section>
+
+    </div>
+
+    <section class="card" id="about">
+      <h2><span class="emoji">🧭</span> 길드 소개</h2>
+      <p class="sub">방랑은 “오래 즐길 사람들”을 위한 길드예요. 말 걸기 어려운 분위기 NO.</p>
+
+      <div class="twoCol">
+        <div class="miniCard">
+          <h3>우리가 지키는 분위기</h3>
+          <p>
+            · 서로의 속도 존중<br/>
+            · 과한 훈수/비난 금지<br/>
+            · 정보는 나눌수록 강해짐
+          </p>
+        </div>
+        <div class="miniCard">
+          <h3>잘 맞는 분 / 안 맞는 분</h3>
+          <p>
+            ✔ 라이트하게 오래 하고 싶은 분<br/>
+            ✔ 같이 웃고 협력하는 걸 좋아하는 분<br/><br/>
+            ❌ 경쟁·순위 스트레스가 큰 분<br/>
+            ❌ 비매너·부적절한 언행을 하시는 분<br/>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="join">
+      <h2><span class="emoji">🤝</span> 길드 안내</h2>
+      <p class="sub">방랑에 대해 간단하게 소개드려요 ! </p>
+
+      <div class="twoCol">
+        <div class="miniCard">
+          <h3>간단 규칙</h3>
+          <p>
+            · 매너/기본 예의 필수<br/>
+            · 단톡(필수)/디코(자유) 참여<br/>
+            · 사전 공유없이 5일 이상 미접 시 추방
+          </p>
+        </div>
+        <div class="miniCard">
+          <h3>소통 방법</h3>
+          <p>
+            · 오픈채팅 : https://open.kakao.com/o/g5QEodph<br/>
+            · 디스코드 : https://discord.gg/3Ju6HZ99kJ<br/>
+            · 운영진 : 길마 '군림' & 부길마 '직구' '콩팥' '너희집막내'
+          </p>
+        </div>
+      </div>
+    </section>
+
+    
+
+
+    <footer>
+  <div style="font-weight:600; color:#c86a8a; margin-bottom:4px;">
+    각자의 속도로, 오래 함께 🌸
+  </div>
+  <div style="font-size:12px;">
+    © 방랑 길드 · Mabinogi Mobile Lasa Server<br/>
+    This is a fan-made guild page · with love 💕<br/>
+    제작/수정 도움: 너희집막내 with 알렉스
+  </div>
+</footer>
+  </main>
+
+  
+  <!-- Supabase (사진 미리보기용) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- photos.html과 같은 설정 파일을 루트에 두면 인덱스에서도 그대로 씁니다 -->
+  <script src="/supabase_config.js"></script>
+
+  <script>
+  /* =========================
+     ✅ 방랑 길드 인덱스
+     - 공지/꿀팁: Notion DB → Netlify Functions로 가져와서 "제목 클릭 시 펼침"
+     - 사진: Supabase 사진게시판에서 최근 6장 미리보기
+  ========================= */
+
+  // ---------- utils ----------
+  const $ = (id) => document.getElementById(id);
+
+  function escapeHtml(s){
+    return String(s||"")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#39;");
+  }
+
+  function toParagraphs(text){
+    const safe = escapeHtml(text||"");
+    return safe.split(/\n+/).map(p=>`<p style="margin:0 0 10px">${p}</p>`).join("") || "";
+  }
+
+  function safe(obj, path, fallback="") {
+    try {
+      return path.split(".").reduce((a,k)=> (a && a[k]!==undefined) ? a[k] : undefined, obj) ?? fallback;
+    } catch(e){ return fallback; }
+  }
+
+  function mapPage(p){
+    const props = p.properties || {};
+    const title = (safe(props,"제목.title",[]) || []).map(x=>x.plain_text).join("") || "(제목 없음)";
+    const date = safe(props,"작성일.date.start") || safe(props,"Date.date.start") || "";
+    const icon = p.icon && p.icon.type === "emoji" ? p.icon.emoji : "";
+    // 카테고리(Select) or multi_select 첫번째를 대표로 사용
+    const category = safe(props,"카테고리.select.name") || safe(props,"카테고리.multi_select.0.name") || "";
+    const body =
+      (safe(props,"내용.rich_text",[]) || []).map(x=>x.plain_text).join("")
+      || (safe(props,"설명.rich_text",[])||[]).map(x=>x.plain_text).join("")
+      || "";
+    // 태그(다중선택)도 있으면 가져오기 (선택사항)
+    const tags = (safe(props,"태그.multi_select",[]) || []).map(x=>x.name).filter(Boolean);
+    return { title, date, icon, category, body, tags };
+  }
+
+  async function fetchList(type){
+    const res = await fetch(`/.netlify/functions/notion?type=${type}`, { cache: "no-store" });
+    const data = await res.json().catch(()=> ({}));
+    if(!res.ok){
+      console.warn("Notion fetch error", type, data);
+      throw new Error(data?.message || "fetch failed");
+    }
+    return (data.results || []).map(mapPage);
+  }
+
+  // ---------- 공지: 제목만 보이다가 펼침 ----------
+  async function renderNotices(){
+    const el = $("noticeList");
+    if(!el) return;
+
+    el.innerHTML = `<div class="item"><p class="sub" style="margin:0">불러오는 중...</p></div>`;
+
+    try{
+      const list = await fetchList("notice");
+
+      // 📌 고정 우선, 최신순
+      list.sort((a,b)=>{
+        const ap = a.icon === "📌" ? 1 : 0;
+        const bp = b.icon === "📌" ? 1 : 0;
+        if(ap !== bp) return bp - ap;
+        return (b.date || "").localeCompare(a.date || "");
+      });
+
+      if(list.length === 0){
+        el.innerHTML = `<div class="item"><p class="sub" style="margin:0">표시할 공지가 없어요.</p></div>`;
+        return;
+      }
+
+      // 상단 필터(전체/운영/이벤트/중요) 동작: category가 그 단어를 포함하면 매칭
+      const currentFilter = $("noticeFilters")?.querySelector(".pill.active")?.dataset.filter || "all";
+      const filtered = list.filter(item=>{
+        if(currentFilter === "all") return true;
+        const cat = (item.category || "").toLowerCase();
+        if(currentFilter === "ops") return cat.includes("운영");
+        if(currentFilter === "event") return cat.includes("이벤트");
+        if(currentFilter === "important") return cat.includes("중요") || item.icon === "📌";
+        return true;
+      });
+
+      if(filtered.length === 0){
+        el.innerHTML = `<div class="item"><p class="sub" style="margin:0">해당 필터의 공지가 없어요.</p></div>`;
+        return;
+      }
+
+      el.innerHTML = filtered.slice(0,20).map(item=>{
+        const badgePin = item.icon==="📌" ? `<span class="tag important">📌 고정</span>` : "";
+        const cat = item.category ? `<span class="tag">${escapeHtml(item.category)}</span>` : "";
+        const meta = `
+          <div class="meta">
+            ${badgePin}${cat}
+            ${item.date ? `<span>📅 ${escapeHtml(item.date)}</span>` : ``}
+          </div>
+        `;
+
+        // ✅ 링크 없음: 제목 클릭 → 펼침
+        return `
+          <div class="item">
+            <div class="itemTop">
+              <div style="width:100%">
+                <p class="title">${escapeHtml(item.title)}</p>
+                ${meta}
+              </div>
+            </div>
+            <details>
+              <summary>내용 보기</summary>
+              <div class="content">${toParagraphs(item.body)}</div>
+            </details>
+          </div>
+        `;
+      }).join("");
+    }catch(e){
+      el.innerHTML = `<div class="item"><p class="sub" style="margin:0">공지 불러오기 실패: ${escapeHtml(e.message || String(e))}</p></div>`;
+    }
+  }
+
+  // ---------- 꿀팁: Notion 카테고리(생활/데코/캐릭터/레이드/어비스) 자동 반영 + 펼침 ----------
+  let TIP_ALL = [];
+  let tipState = { filter:"all", q:"" };
+
+  function renderTipList(){
+    const el = $("tipList");
+    if(!el) return;
+
+    const qq = (tipState.q||"").trim().toLowerCase();
+    const data = TIP_ALL.filter(item=>{
+      const okFilter = (tipState.filter==="all") ? true : item.category === tipState.filter;
+      if(!okFilter) return false;
+      if(!qq) return true;
+      const hay = (item.title + " " + (item.category||"") + " " + (item.tags||[]).join(" ") + " " + (item.body||"")).toLowerCase();
+      return hay.includes(qq);
+    });
+
+    if(data.length === 0){
+      el.innerHTML = `<div class="item"><p class="sub" style="margin:0">해당 조건의 꿀팁이 없어요.</p></div>`;
+      return;
+    }
+
+    el.innerHTML = data.slice(0,40).map(item=>{
+      const cat = item.category ? `<span class="tag tip">${escapeHtml(item.category)}</span>` : `<span class="tag tip">꿀팁</span>`;
+      const chips = (item.tags||[]).slice(0,4).map(t=>`<span class="chip" style="padding:4px 8px">${escapeHtml(t)}</span>`).join("");
+      return `
+        <div class="item">
+          <div class="itemTop">
+            <div style="width:100%">
+              <p class="title">${escapeHtml(item.title)}</p>
+              <div class="meta" style="margin-top:8px">
+                ${cat}
+                ${item.date ? `<span>📅 ${escapeHtml(item.date)}</span>` : ``}
+                ${chips}
+              </div>
+            </div>
+          </div>
+          <details>
+            <summary>내용 보기</summary>
+            <div class="content">${toParagraphs(item.body)}</div>
+          </details>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function syncTipFilterUIFromNotion(){
+    // Notion에서 실제로 쓰는 카테고리가 바뀌어도 자동 반영 가능
+    const filterBar = $("tipFilters");
+    if(!filterBar) return;
+
+    const desiredOrder = ["생활","데코","캐릭터","레이드","어비스"];
+    const have = new Set(TIP_ALL.map(x=>x.category).filter(Boolean));
+
+    // 버튼 텍스트는 유지하되, Notion에 없는 카테고리는 비활성/숨김 처리
+    [...filterBar.querySelectorAll(".pill")].forEach(p=>{
+      const f = p.dataset.filter;
+      if(f === "all") return;
+      if(!have.has(f)){
+        p.style.display = "none";
+      }else{
+        p.style.display = "inline-flex";
+      }
+    });
+
+    // 혹시 Notion에서 새 카테고리가 생겼는데(예: "PVP") UI에 없으면 자동 추가
+    const existing = new Set([...filterBar.querySelectorAll(".pill")].map(p=>p.dataset.filter));
+    const extras = [...have].filter(x=> x !== "all" && !existing.has(x));
+
+    if(extras.length){
+      // extras는 끝에 붙이고, 디자인 동일
+      extras.forEach(x=>{
+        const span = document.createElement("span");
+        span.className = "pill";
+        span.dataset.filter = x;
+        span.textContent = x;
+        filterBar.appendChild(span);
+      });
+    }
+
+    // 원하는 순서대로 DOM 정렬(전체는 맨 앞)
+    const pills = [...filterBar.querySelectorAll(".pill")];
+    const map = new Map(pills.map(p=>[p.dataset.filter, p]));
+    filterBar.innerHTML = "";
+    filterBar.appendChild(map.get("all"));
+    desiredOrder.forEach(k=>{ if(map.get(k)) filterBar.appendChild(map.get(k)); });
+    // 나머지(추가된 카테고리)
+    pills.forEach(p=>{
+      const k = p.dataset.filter;
+      if(k==="all") return;
+      if(desiredOrder.includes(k)) return;
+      if(!filterBar.contains(p)) filterBar.appendChild(p);
     });
   }
-  loadPhotos();
-</script>
+
+  async function renderTips(){
+    const el = $("tipList");
+    if(!el) return;
+
+    el.innerHTML = `<div class="item"><p class="sub" style="margin:0">불러오는 중...</p></div>`;
+
+    try{
+      const list = await fetchList("tips");
+      list.sort((a,b)=> (b.date||"").localeCompare(a.date||""));
+      TIP_ALL = list;
+
+      syncTipFilterUIFromNotion();
+      renderTipList();
+    }catch(e){
+      el.innerHTML = `<div class="item"><p class="sub" style="margin:0">꿀팁 불러오기 실패: ${escapeHtml(e.message || String(e))}</p></div>`;
+    }
+  }
+
+  // ---------- 사진 미리보기: Supabase 사진게시판에서 최근 6장 ----------
+  async function renderPhotoPreview(){
+    const stateEl = $("photoState");
+    const gridEl  = $("photoPreview");
+    if(!stateEl || !gridEl) return;
+
+    // supabase_config.js 누락 시
+    if(!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY || !window.supabase){
+      stateEl.textContent = "사진 미리보기 설정이 아직 없어요. (supabase_config.js 확인)";
+      gridEl.style.display = "none";
+      return;
+    }
+
+    const sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    const BUCKET = "bangrang-photos";
+    const TABLE  = "photo_posts";
+
+    stateEl.textContent = "불러오는 중...";
+    gridEl.style.display = "none";
+
+    const { data, error } = await sb
+      .from(TABLE)
+      .select("id, image_path, caption, nickname, created_at, taken_on")
+      .order("created_at", { ascending:false })
+      .limit(6);
+
+    if(error){
+      stateEl.textContent = "사진 불러오기 실패: " + error.message;
+      gridEl.style.display = "none";
+      return;
+    }
+
+    if(!data || data.length === 0){
+      stateEl.textContent = "아직 등록된 사진이 없어요. 첫 업로드 해줘요 💖";
+      gridEl.style.display = "none";
+      return;
+    }
+
+    stateEl.style.display = "none";
+    gridEl.style.display = "grid";
+    gridEl.innerHTML = data.map(row=>{
+      const { data: pub } = sb.storage.from(BUCKET).getPublicUrl(row.image_path);
+      const imgUrl = pub.publicUrl;
+      const title = escapeHtml(row.caption || "사진");
+      const who = escapeHtml(row.nickname || "익명");
+      return `
+        <a class="miniCard" href="/photos.html" style="padding:10px; border-radius:18px; overflow:hidden;">
+          <div style="width:100%; aspect-ratio:1/1; border-radius:14px; overflow:hidden; border:1px solid rgba(244,143,177,.18); background:#fff7fa;">
+            <img src="${imgUrl}" alt="${title}" style="width:100%; height:100%; object-fit:cover; display:block;">
+          </div>
+          <div style="margin-top:8px; font-weight:800; font-size:13px; line-height:1.25; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${title}</div>
+          <div style="margin-top:4px; font-size:12px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">👤 ${who}</div>
+        </a>
+      `;
+    }).join("");
+  }
+
+  // ---------- UI events ----------
+  // 공지 필터 클릭 → 다시 렌더
+  const noticeFilters = $("noticeFilters");
+  if(noticeFilters){
+    noticeFilters.addEventListener("click", (e)=>{
+      const pill = e.target.closest(".pill");
+      if(!pill) return;
+      [...noticeFilters.querySelectorAll(".pill")].forEach(p=>p.classList.remove("active"));
+      pill.classList.add("active");
+      renderNotices();
+    });
+  }
+
+  // 꿀팁 필터 클릭 → 클라이언트에서 필터링
+  const tipFilters = $("tipFilters");
+  if(tipFilters){
+    tipFilters.addEventListener("click", (e)=>{
+      const pill = e.target.closest(".pill");
+      if(!pill) return;
+      [...tipFilters.querySelectorAll(".pill")].forEach(p=>p.classList.remove("active"));
+      pill.classList.add("active");
+      tipState.filter = pill.dataset.filter;
+      renderTipList();
+    });
+  }
+
+  const tipSearch = $("tipSearch");
+  if(tipSearch){
+    tipSearch.addEventListener("input", ()=>{
+      tipState.q = tipSearch.value;
+      renderTipList();
+    });
+  }
+
+  // 초대 문구 복사 버튼(기존 유지)
+  const copyBtn = $("copyInvite");
+  if(copyBtn){
+    copyBtn.addEventListener("click", async ()=>{
+      const text =
+`[마비노기 모바일] 라사 서버 '방랑' 길드에서 함께하실 분을 찾아요!
+- 라이트~중간 하드 / 친목&협력
+- 문의: 길마 '군림' 귓`;
+      try{
+        await navigator.clipboard.writeText(text);
+        alert("초대 문구를 복사했어요!");
+      }catch(err){
+        prompt("복사 권한이 없어서 직접 복사해주세요:", text);
+      }
+    });
+  }
+
+  // ---------- start ----------
+  renderNotices();
+  renderTips();
+  renderPhotoPreview();
+  </script>
+
 </body>
 </html>
