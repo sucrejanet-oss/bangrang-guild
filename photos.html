@@ -211,31 +211,44 @@
     }
 
     async function adminDelete(id, path){
-      // ✅ 중요: dataset으로 받은 id는 문자열일 수 있어서 숫자로 변환
-      // (DB id가 숫자일 때 삭제 0건 되는 문제 방지)
-      id = Number(id);
-
       const token = $("adminToken").value.trim();
       if(!token){ alert("운영진 토큰을 입력해야 삭제할 수 있어요!"); return false; }
       if(!confirm("정말 삭제할까요?")) return false;
 
-      setStatus("삭제 중...");
-      try{
-        const res = await fetch("/.netlify/functions/admin_delete", {
-          method: "POST",
-          headers: { "Content-Type":"application/json" },
-          body: JSON.stringify({ token, id, path }),
-        });
+  // 혹시라도 path가 비면 바로 알려주기
+  if(!id || !path){
+    setStatus("삭제 실패: id 또는 path가 비어있어요. (버튼 데이터 문제)", true);
+    console.error("missing id/path", { id, path });
+    return false;
+  }
 
-        const text = await res.text();
-        let data = {};
-        try{ data = JSON.parse(text); }catch(e){ data = { raw: text }; }
+  setStatus("삭제 중...");
+  try{
+    const res = await fetch("/.netlify/functions/admin_delete", {
+      method: "POST",
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify({ token, id, path }),
+    });
 
-        if(!res.ok){
-          setStatus("삭제 실패: " + (data.error || res.statusText), true);
-          console.error("admin_delete failed", { status: res.status, statusText: res.statusText, data });
-          return false;
-        }
+    const text = await res.text();
+    let data = {};
+    try{ data = JSON.parse(text); }catch(e){ data = { raw: text }; }
+
+    if(!res.ok){
+      setStatus("삭제 실패: " + (data.error || res.statusText), true);
+      console.error("admin_delete failed", { status: res.status, statusText: res.statusText, data });
+      return false;
+    }
+
+    setStatus(`삭제 완료 ✅ (DB:${data.db_deleted} / 파일:${data.storage_removed||0})`);
+    await listPhotos();
+    return true;
+  }catch(err){
+    setStatus("삭제 요청 실패(네트워크/함수 문제): " + (err?.message || String(err)), true);
+    console.error("admin_delete fetch error", err);
+    return false;
+  }
+}
 
         // 성공인데 실제 삭제가 0건이면 사용자에게 알려줌
         if(data && data.db_deleted === 0){
@@ -269,8 +282,9 @@
         window.open(btn.dataset.url, "_blank", "noopener");
       }
       if(action === "delete"){
-        const id = Number(btn.dataset.id); // ✅ 여기서도 한 번 더 안전하게 숫자로 변환
-        const ok = await adminDelete(id, btn.dataset.path);
+        const id = btn.dataset.id;      // ✅ 숫자 변환 X
+        const path = btn.dataset.path;  // ✅ 그대로
+        const ok = await adminDelete(id, path);
         if(ok){ btn.closest(".card")?.remove(); }
       }
     });
