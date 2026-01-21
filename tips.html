@@ -25,6 +25,7 @@
     *{box-sizing:border-box}
     html,body{margin:0}
     body{
+      font-size:15px;
       font-family: "Pretendard", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", Arial, sans-serif;
       color:var(--text);
       background:
@@ -46,13 +47,13 @@
     }
     .brand{display:flex;gap:10px;align-items:center;font-weight:900;letter-spacing:.2px}
     .badge{
-      font-size:12px;color:var(--muted);
+      font-size:13px;color:var(--muted);
       padding:4px 10px;border:1px solid rgba(244,143,177,.25);
       border-radius:999px;background:#fff7fa;
     }
     .navRight{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
     .navbtn{
-      font-size:13px;color:var(--muted);
+      font-size:14px;color:var(--muted);
       padding:8px 10px;border-radius:999px;border:1px solid transparent;
       background:transparent;
       cursor:pointer;
@@ -69,8 +70,8 @@
       display:flex;gap:12px;align-items:center;justify-content:space-between;
       flex-wrap:wrap;
     }
-    .hero h1{margin:0;font-size:20px;line-height:1.2;color:#d86b94}
-    .hero p{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.55}
+    .hero h1{margin:0;font-size:24px;line-height:1.2;color:#d86b94}
+    .hero p{margin:6px 0 0;color:var(--muted);font-size:15px;line-height:1.55}
     .card{
       margin-top:14px;
       border-radius: var(--radius);
@@ -87,16 +88,17 @@
     .leftTools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
     .rightTools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
     .input{
-      width:min(340px, 100%);
-      padding:10px 12px;border-radius:16px;
+      width:min(420px, 100%);
+      padding:12px 14px;border-radius:18px;
       border:1px solid rgba(244,143,177,.25);
       background:#ffffff;color:var(--text);
-      outline:none;font-size:13px;
+      outline:none;font-size:15px;
+    }
     }
     .pillRow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
     .pill{
       cursor:pointer;
-      font-size:12px;color:var(--muted);
+      font-size:13px;color:var(--muted);
       padding:7px 10px;border-radius:999px;
       border:1px solid rgba(244,143,177,.25);
       background:#fff3f8;user-select:none;
@@ -105,7 +107,7 @@
     }
     .pill:hover{filter:brightness(1.02);transform:translateY(-1px)}
     .pill.active{background: linear-gradient(135deg, #f8bbd0, #f48fb1); color:#ffffff; border:none}
-    .metaLine{color:var(--muted);font-size:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .metaLine{color:var(--muted);font-size:13px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     .list{display:grid;gap:10px}
     .item{
       border:1px solid rgba(244,143,177,.18);
@@ -114,10 +116,10 @@
       padding:12px 12px;
     }
     .itemTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-    .title{margin:0;font-weight:900;font-size:14px;line-height:1.35}
+    .title{margin:0;font-weight:900;font-size:16px;line-height:1.35}
     .tags{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
     .tag{
-      font-size:11px;font-weight:900;
+      font-size:12px;font-weight:900;
       padding:4px 8px;border-radius:999px;
       border:1px solid rgba(244,143,177,.25);
       color:var(--muted);background:#fff0f6;
@@ -135,16 +137,16 @@
     .tag.misc{background:#f2f2f2;color:#6a6a6a;border-color:rgba(106,106,106,.18)}
 
     details{border-top:1px dashed rgba(244,143,177,.25);margin-top:10px;padding-top:10px}
-    details summary{cursor:pointer;color:var(--text);font-weight:900;font-size:13px;list-style:none}
+    details summary{cursor:pointer;color:var(--text);font-weight:900;font-size:14px;list-style:none}
     details summary::-webkit-details-marker{display:none}
-    .content{color:var(--muted);font-size:13px;line-height:1.65;margin-top:10px;overflow-wrap:anywhere;word-break:break-word}
+    .content{color:var(--muted);font-size:15px;line-height:1.65;margin-top:10px;overflow-wrap:anywhere;word-break:break-word}
     .pagination{
       display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;
       margin-top:14px;
     }
     .pagebtn{
       cursor:pointer;
-      font-size:12px;font-weight:900;
+      font-size:13px;font-weight:900;
       color:var(--muted);
       padding:8px 10px;border-radius:999px;
       border:1px solid rgba(244,143,177,.25);
@@ -354,7 +356,65 @@
       .linkRow{justify-content:center}
       .mediaGrid{grid-template-columns: repeat(2, 1fr)}
     }
-  </style>
+  
+    /* ===== 참고링크(Reference URL) ===== */
+    .refs{
+      margin-top:12px;
+      padding-top:10px;
+      border-top:1px dashed rgba(244,143,177,.25);
+      display:grid;
+      gap:8px;
+    }
+    .refTitle{
+      font-size:13px;
+      font-weight:900;
+      color:var(--text);
+    }
+    .refLinks{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .refLink{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size:13px;
+      font-weight:850;
+      color:var(--text);
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(244,143,177,.22);
+      background:#fff7fa;
+      position:relative;
+      overflow:hidden;
+      transition: transform .18s ease, filter .18s ease;
+    }
+    .refLink:hover{
+      transform: translateY(-1px);
+      filter: brightness(1.02);
+    }
+    .refLink::before{
+      content:"";
+      position:absolute; inset:0;
+      background: linear-gradient(120deg, transparent, rgba(255,255,255,.55), transparent);
+      transform: translateX(-140%);
+      transition: transform .55s ease;
+      pointer-events:none;
+    }
+    .refLink:hover::before{ transform: translateX(140%); }
+
+    /* ===== 태그/필터 pill도 컬러 매핑 적용 ===== */
+    .pill.role{background:#e9fbf4;color:#4e8b73;border-color:rgba(78,139,115,.22)}
+    .pill.boss{background:#fff1e9;color:#a55b3e;border-color:rgba(165,91,62,.22)}
+    .pill.dungeon{background:#f3ecff;color:#6a4bbf;border-color:rgba(106,75,191,.22)}
+    .pill.gear{background:#eaf3ff;color:#3e6aa5;border-color:rgba(62,106,165,.22)}
+    .pill.life{background:#fff7e6;color:#8a6a2b;border-color:rgba(138,106,43,.22)}
+    .pill.money{background:#e8fbff;color:#2b6b7a;border-color:rgba(43,107,122,.22)}
+    .pill.event{background:#fde2f0;color:#c94b78;border-color:rgba(201,75,120,.22)}
+    .pill.important{background:#ffe4ec;color:#d94c7a;border-color:rgba(217,76,122,.25)}
+    .pill.misc{background:#f2f2f2;color:#6a6a6a;border-color:rgba(106,106,106,.18)}
+    </style>
 </head>
 <body>
   <header class="topbar">
@@ -366,10 +426,6 @@
           <div class="badge">꿀팁 게시판</div>
         </div>
       </div>
-      <div class="navRight">
-        <a class="navbtn" href="/index.html">홈</a>
-        <a class="navbtn" href="/photos.html">사진게시판</a>
-      </div>
     </div>
   </header>
 
@@ -378,10 +434,6 @@
       <div>
         <h1>게임 꿀팁 게시판</h1>
         <p>운영진이 노션에 올린 글을 게시판 형태로 봐요. (검색/태그/페이지/미디어)</p>
-      </div>
-      <div class="linkRow">
-        <a class="textLinkBtn" href="/index.html">홈으로</a>
-        <a class="textLinkBtn" href="/photos.html">사진게시판</a>
       </div>
     </section>
 
@@ -522,7 +574,38 @@
       const fp = pickFilesProp(props);
       const files = (fp || []).map(normalizeFile).filter(x=>x.url);
 
-      return { title, date, category, body, tags, files };
+
+      // reference links (URL / 참고링크)
+      const urlSingle =
+        props["참고링크"]?.url
+        || props["참고 링크"]?.url
+        || props["참고URL"]?.url
+        || props["URL"]?.url
+        || props["Link"]?.url
+        || props["Reference"]?.url
+        || "";
+
+      const urlRich =
+        props["참고링크"]?.rich_text
+        || props["참고 링크"]?.rich_text
+        || props["참고URL"]?.rich_text
+        || props["URL"]?.rich_text
+        || props["Link"]?.rich_text
+        || props["Reference"]?.rich_text
+        || [];
+
+      const refsFromRich = (urlRich || []).map(rt=>{
+        const url = rt?.text?.link?.url || rt?.href || "";
+        const text = rt?.plain_text || url || "링크";
+        return url ? ({ text, url }) : null;
+      }).filter(Boolean);
+
+      const refs = [
+        ...(urlSingle ? [{ text: "참고 링크", url: urlSingle }] : []),
+        ...refsFromRich
+      ];
+
+      return { title, date, category, body, tags, files, refs };
     }
 
     async function fetchTips(){
@@ -576,7 +659,7 @@
       const tags = Array.from(tagSet).sort((a,b)=> a.localeCompare(b, "ko"));
       const pillHtml = [
         `<span class="pill active" data-tag="all">전체</span>`,
-        ...tags.map(t => `<span class="pill" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</span>`)
+        ...tags.map(t => `<span class="pill ${tagClassName(t)}" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</span>`)
       ].join("");
       pillsEl.innerHTML = pillHtml;
 
@@ -616,6 +699,33 @@
 
       render();
     }
+
+
+    function renderRefs(refs){
+      if(!refs || !refs.length) return "";
+      const uniq = [];
+      const seen = new Set();
+      for(const r of refs){
+        const url = r?.url || "";
+        if(!url || seen.has(url)) continue;
+        seen.add(url);
+        uniq.push({ text: r?.text || "링크", url });
+        if(uniq.length >= 6) break;
+      }
+      return `
+        <div class="refs">
+          <div class="refTitle">참고 링크</div>
+          <div class="refLinks">
+            ${uniq.map(r=>`
+              <a class="refLink" href="${escapeHtml(r.url)}" target="_blank" rel="noopener">
+                🔗 ${escapeHtml(r.text)}
+              </a>
+            `).join("")}
+          </div>
+        </div>
+      `;
+    }
+
 
     function renderMedia(files, postTitle){
       if(!files || !files.length) return "";
@@ -699,6 +809,7 @@
               <summary>내용 보기</summary>
               <div class="content">${toParagraphs(it.body)}</div>
               ${media}
+              ${renderRefs(it.refs)}
             </details>
           </div>
         `;
