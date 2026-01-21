@@ -1,3 +1,3 @@
-// ✅ Supabase 설정 (여기만 채우면 됩니다)
-window.SUPABASE_URL = "PASTE_SUPABASE_URL_HERE";
-window.SUPABASE_ANON_KEY = "PASTE_SUPABASE_ANON_KEY_HERE";
+// ✅ Supabase 설정
+window.SUPABASE_URL = "https://crphaesxzewgutqjielu.supabase.co";
+window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNycGhhZXN4emV3Z3V0cWppZWx1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg5NjEzNDQsImV4cCI6MjA4NDUzNzM0NH0.55eaK-m5bRcML4XxiQjq7Riy7QLLu-imUDjBqK-hQ9c";
