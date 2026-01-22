@@ -548,6 +548,20 @@ section.card h2{
     return safe.split(/\n+/).map(p=>`<p style="margin:0 0 10px">${p}</p>`).join("") || "";
   }
 
+function renderImages(urls){
+    const list = (urls || []).filter(Boolean);
+    if(!list.length) return "";
+    return `
+      <div style="margin-top:10px; display:grid; gap:10px;">
+        ${list.slice(0,6).map(u=>`
+          <a href="${escapeHtml(u)}" target="_blank" rel="noopener" style="display:block">
+            <img src="${escapeHtml(u)}" alt="image" style="width:100%; height:auto; display:block; border-radius:14px; border:1px solid rgba(244,143,177,.18); background:#fff7fa;">
+          </a>
+        `).join("")}
+      </div>
+    `;
+  }
+
   function safe(obj, path, fallback="") {
     try {
       return path.split(".").reduce((a,k)=> (a && a[k]!==undefined) ? a[k] : undefined, obj) ?? fallback;
@@ -610,7 +624,30 @@ section.card h2{
       ...((tagList || []).map(x=>x.name).filter(Boolean))
     ];
 
-    return { title, date, icon, category, body, tags };
+    // ---- images (Notion DB property files OR page cover) ----
+    // ⚠️ Notion DB query 결과만으로는 "본문에 삽입된 이미지 블록"까지 가져오지 못해요.
+    // 대신 DB에 files 속성(예: '이미지'/'Image'/'첨부')을 만들어 올려둔 이미지 URL을 표시합니다.
+    const fileProp =
+      props["이미지"]?.files
+      || props["Image"]?.files
+      || props["첨부"]?.files
+      || props["Files"]?.files
+      || [];
+
+    const imagesFromProp = (fileProp || []).map(f=>{
+      if(!f) return "";
+      if(f.type === "external") return f.external?.url || "";
+      if(f.type === "file") return f.file?.url || "";
+      return "";
+    }).filter(Boolean);
+
+    const coverUrl = (p.cover?.type === "external") ? (p.cover.external?.url || "")
+                    : (p.cover?.type === "file") ? (p.cover.file?.url || "")
+                    : "";
+
+    const images = [...imagesFromProp, ...(coverUrl ? [coverUrl] : [])];
+
+    return { title, date, icon, category, body, tags, images };
   }
 
 
@@ -684,7 +721,7 @@ section.card h2{
             </div>
             <details>
               <summary>내용 보기</summary>
-              <div class="content">${toParagraphs(item.body)}</div>
+              <div class="content">${renderImages(item.images)}${toParagraphs(item.body)}</div>
             </details>
           </div>
         `;
@@ -734,7 +771,7 @@ section.card h2{
             </div>
             <details>
               <summary>내용 보기</summary>
-              <div class="content">${toParagraphs(item.body)}</div>
+              <div class="content">${renderImages(item.images)}${toParagraphs(item.body)}</div>
             </details>
           </div>
         `;
