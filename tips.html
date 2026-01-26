@@ -357,6 +357,39 @@
     .modal-desc{ font-size: 14px; color: rgba(31,31,36,.78); line-height: 1.55; margin: 0; white-space: pre-wrap; }
     .modal-actions{ margin-top:auto; display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
 
+  
+    .navbtn{
+      position:absolute;
+      top:50%;
+      transform: translateY(-50%);
+      border: 1px solid rgba(255,255,255,.35);
+      background: rgba(0,0,0,.25);
+      color: rgba(255,255,255,.92);
+      border-radius: 999px;
+      width: 44px;
+      height: 44px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      font-weight: 900;
+      font-size: 18px;
+      backdrop-filter: blur(6px);
+      transition: background .15s ease, transform .06s ease, opacity .15s ease;
+      z-index: 2;
+      user-select:none;
+    }
+    .navbtn:hover{ background: rgba(244,143,177,.25); }
+    .navbtn:active{ transform: translateY(-50%) translateY(1px); }
+    .navbtn.left{ left: 10px; }
+    .navbtn.right{ right: 10px; }
+    .navbtn:disabled{ opacity:.35; cursor:not-allowed; }
+    .kbdHint{
+      font-size:12px;
+      color: rgba(31,31,36,.62);
+      margin-left:auto;
+    }
+
   </style>
 </head>
 <body>
@@ -414,6 +447,10 @@
   <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
     <div class="modal-wrap">
       <button class="xbtn" id="modalCloseBtn" type="button">✕</button>
+
+      <button class="navbtn left" id="modalPrevBtn" type="button" aria-label="이전 이미지">‹</button>
+      <button class="navbtn right" id="modalNextBtn" type="button" aria-label="다음 이미지">›</button>
+
       <div class="modal" role="dialog" aria-modal="true" aria-label="이미지 크게 보기">
         <div class="modal-media">
           <img id="modalImg" alt="">
@@ -695,14 +732,17 @@
       if(!files || !files.length) return "";
       const imgs = files.filter(f=>f.isImg);
       const docs = files.filter(f=>!f.isImg);
+      const gallery = imgs.map(f=>f.url).join("||");
 
       const imgGrid = imgs.length ? `
         <div class="mediaGrid">
-          ${imgs.map(f=>`
+          ${imgs.map((f,idx)=>`
             <div class="thumb" role="button" tabindex="0"
                  data-action="img"
                  data-url="${escapeHtml(f.url)}"
-                 data-title="${escapeHtml(postTitle)} · ${escapeHtml(f.name)}">
+                 data-title="${escapeHtml(postTitle)} · ${escapeHtml(f.name)}"
+                 data-gallery="${escapeHtml(gallery)}"
+                 data-index="${idx}">
               <img src="${escapeHtml(f.url)}" alt="${escapeHtml(f.name)}" loading="lazy" />
               <div class="label">${escapeHtml(f.name)}</div>
             </div>
@@ -812,38 +852,74 @@
       renderPager();
     }
 
-    // Modal
-    let modal = { open:false, url:"", title:"" };
+    // Modal (gallery nav)
+    let modal = { open:false, urls:[], idx:0, title:"" };
 
-    function openModal(url, title){
+    function updateModal(){
+      const url = modal.urls[modal.idx] || "";
       $("modalImg").src = url;
-      $("modalTitle").textContent = title || "이미지";
-      $("modalMeta").textContent = "";
+      $("modalTitle").textContent = modal.title || "이미지";
+      $("modalMeta").textContent = modal.urls.length ? `${modal.idx+1} / ${modal.urls.length}` : "";
       $("modalDesc").textContent = "";
+      $("modalOpenBtn").onclick = ()=> url && window.open(url, "_blank", "noopener");
+
+      // enable/disable buttons
+      const prev = $("modalPrevBtn");
+      const next = $("modalNextBtn");
+      if(prev) prev.disabled = (modal.idx <= 0);
+      if(next) next.disabled = (modal.idx >= modal.urls.length - 1);
+    }
+
+    function openModal(urls, idx, title){
+      modal = { open:true, urls: urls || [], idx: Math.max(0, Math.min(idx||0, (urls||[]).length-1)), title: title || "이미지" };
       $("modalBackdrop").style.display = "flex";
       $("modalBackdrop").setAttribute("aria-hidden","false");
-      $("modalOpenBtn").onclick = ()=> window.open(url, "_blank", "noopener");
-      modal = { open:true, url, title };
+      updateModal();
     }
+
     function closeModal(){
       $("modalBackdrop").style.display = "none";
       $("modalBackdrop").setAttribute("aria-hidden","true");
       $("modalImg").src = "";
-      modal = { open:false, url:"", title:"" };
+      modal = { open:false, urls:[], idx:0, title:"" };
     }
+
+    function prevModal(){
+      if(!modal.open) return;
+      if(modal.idx <= 0) return;
+      modal.idx -= 1;
+      updateModal();
+    }
+    function nextModal(){
+      if(!modal.open) return;
+      if(modal.idx >= modal.urls.length-1) return;
+      modal.idx += 1;
+      updateModal();
+    }
+
     $("modalCloseBtn").addEventListener("click", closeModal);
+    $("modalPrevBtn").addEventListener("click", prevModal);
+    $("modalNextBtn").addEventListener("click", nextModal);
+
     $("modalBackdrop").addEventListener("click", (e)=>{ if(e.target === $("modalBackdrop")) closeModal(); });
+
     document.addEventListener("keydown", (e)=>{
       const isOpen = $("modalBackdrop").getAttribute("aria-hidden") === "false";
-      if(e.key === "Escape" && isOpen) closeModal();
+      if(!isOpen) return;
+      if(e.key === "Escape") closeModal();
+      if(e.key === "ArrowLeft") prevModal();
+      if(e.key === "ArrowRight") nextModal();
     });
 
     document.addEventListener("click", (e)=>{
       const t = e.target.closest('[data-action="img"]');
       if(!t) return;
-      const url = t.getAttribute("data-url");
-      const title = t.getAttribute("data-title") || "";
-      if(url) openModal(url, title);
+      const url = t.getAttribute("data-url") || "";
+      const title = t.getAttribute("data-title") || "이미지";
+      const galleryRaw = t.getAttribute("data-gallery") || "";
+      const idx = parseInt(t.getAttribute("data-index") || "0", 10) || 0;
+      const urls = galleryRaw ? galleryRaw.split("||").filter(Boolean) : (url ? [url] : []);
+      openModal(urls, idx, title);
     });
 
     // Search debounce
