@@ -460,6 +460,8 @@
 
     function pickFilesProp(props){
       return (
+        props["이미지"]?.files ||
+        props["Image"]?.files ||
         props["파일과 미디어"]?.files ||
         props["파일"]?.files ||
         props["미디어"]?.files ||
