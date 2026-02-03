@@ -591,11 +591,60 @@
     function getStoragePathFromRow(row){
       return row.image_path || row.path || row.imagePath || row.image || row.file_path || "";
     }
+
+    // ✅ DB 스키마가 제각각일 때(특히 title/description/date 컬럼이 없을 때)
+    //    fallback로 caption에 합쳐 저장된 값을 "제목/설명/날짜"로 다시 분리해서 쓰기
+    function parseCaptionFallback(row){
+      const raw = String(row.caption || row.description || row.desc || "");
+      const lines = raw.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+
+      let dateText = "";
+      let title = "";
+      let desc = "";
+
+      // 1) 맨 첫 줄이 '📅 25/01/31' 같은 형태면 날짜로 인식
+      if(lines[0] && lines[0].startsWith("📅")){
+        const t = lines[0].replace(/^📅\s*/,"").trim();
+        if(t) dateText = t;
+        lines.shift();
+      }else if(lines[0]){
+        // 2) '25/01/31' 또는 '2025-01-31' 같은 형태가 첫 줄이면 날짜로 인식
+        const l0 = lines[0];
+        if(/^(\d{2}\/\d{2}\/\d{2})$/.test(l0)){
+          dateText = l0;
+          lines.shift();
+        }else{
+          const m = l0.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+          if(m){
+            dateText = fmtYYMMDD(`${m[1]}-${m[2]}-${m[3]}`);
+            lines.shift();
+          }
+        }
+      }
+
+      // 남은 첫 줄은 제목, 그 다음부터는 설명으로
+      if(lines.length){
+        title = lines[0] || "";
+        desc = lines.slice(1).join("\n");
+      }
+
+      return { dateText, title, desc };
+    }
+
     function getTitleFromRow(row){
-      return row.title || row.post_title || row.name || row.caption_title || row.caption || "사진";
+      const direct = row.title || row.post_title || row.name || row.caption_title;
+      if(direct) return direct;
+
+      const { title } = parseCaptionFallback(row);
+      return title || "사진";
     }
     function getDescFromRow(row){
-      return row.description || row.desc || row.caption || "";
+      const direct = row.description || row.desc;
+      if(direct) return direct;
+
+      // caption에 날짜/제목/설명이 합쳐 저장된 경우, 제목은 제외하고 설명만 사용
+      const { desc } = parseCaptionFallback(row);
+      return desc || "";
     }
     function getPostDateFromRow(row){
       return row.post_date || row.date || row.taken_at || row.event_date || row.photo_date || "";
@@ -607,6 +656,9 @@
 
       // 2) (DB에 날짜 컬럼이 없을 때) caption 안에 저장된 날짜를 파싱
       const s = String(row.caption || row.description || row.desc || "");
+      // 📅 YY/MM/DD
+      let m = s.match(/📅\s*(\d{2}\/\d{2}\/\d{2})/);
+      if(m) return m[1];
       // YYYY-MM-DD
       let m = s.match(/\b(\d{4})-(\d{2})-(\d{2})\b/);
       if(m) return fmtYYMMDD(`${m[1]}-${m[2]}-${m[3]}`);
@@ -622,17 +674,28 @@
     function getSortableDateValue(row){
       const postDate = getPostDateFromRow(row);
       let iso = "";
+
       if(postDate){
         iso = String(postDate);
       }else{
         const s = String(row.caption || row.description || row.desc || "");
-        let m = s.match(/\b(\d{4})-(\d{2})-(\d{2})\b/);
-        if(m) iso = `${m[1]}-${m[2]}-${m[3]}`;
-        else{
-          m = s.match(/\b(\d{2})\/(\d{2})\/(\d{2})\b/);
-          if(m) iso = `20${m[1]}-${m[2]}-${m[3]}`; // 20YY 가정
+
+        // 📅 YY/MM/DD (fallback caption)
+        let m = s.match(/📅\s*(\d{2})\/(\d{2})\/(\d{2})/);
+        if(m){
+          iso = `20${m[1]}-${m[2]}-${m[3]}`;
+        }else{
+          // YYYY-MM-DD
+          m = s.match(/\b(\d{4})-(\d{2})-(\d{2})\b/);
+          if(m) iso = `${m[1]}-${m[2]}-${m[3]}`;
+          else{
+            // YY/MM/DD
+            m = s.match(/\b(\d{2})\/(\d{2})\/(\d{2})\b/);
+            if(m) iso = `20${m[1]}-${m[2]}-${m[3]}`; // 20YY 가정
+          }
         }
       }
+
       const d = iso ? new Date(iso) : null;
       if(d && !isNaN(d)) return d.getTime();
       const c = new Date(row.created_at);
@@ -712,10 +775,15 @@
     $("modalNextBtn").addEventListener("click", ()=> openModalByIndex(currentIndex + 1));
 
 
-    // Pagination
+    // Pagination + modal (cross-page)
 const PAGE_SIZE = 12;
+const MAX_FETCH = 500; // 너무 많이 가져오면 느려질 수 있어서 상한
 let currentPage = 1;
 let totalPages = 1;
+
+// 현재(정렬된) 전체 목록 - 모달 좌우 이동은 이 전체 목록 기준으로 이동
+let allRowsSorted = [];
+let allModalItems = [];
 
 async function getTotalCount(){
   const { count, error } = await sb.from(TABLE).select("id", { count: "exact", head: true });
@@ -736,7 +804,6 @@ function renderPager(){
   prevBtn.disabled = currentPage <= 1;
   nextBtn.disabled = currentPage >= totalPages;
 
-  // show up to 7 page buttons around current
   host.innerHTML = "";
   const maxBtns = 7;
   let start = Math.max(1, currentPage - Math.floor(maxBtns/2));
@@ -753,11 +820,9 @@ function renderPager(){
   }
 }
 
-async function fetchRowsWithBestOrder(from, to){
+async function fetchAllRowsSorted(){
   // ✅ DB에 post_date 같은 날짜 컬럼이 없을 수도 있어서,
   //    "created_at 최신순으로 넉넉히 가져온 뒤" 클라이언트에서 지정날짜 기준으로 재정렬해요.
-  //    (이렇게 하면 'column ... does not exist' 에러가 안 납니다.)
-  const MAX_FETCH = 500; // 너무 많이 가져오면 느려질 수 있어서 상한
   const q = sb
     .from(TABLE)
     .select("*")
@@ -769,76 +834,74 @@ async function fetchRowsWithBestOrder(from, to){
 
   const rows = Array.isArray(data) ? data.slice() : [];
   rows.sort((a,b)=> getSortableDateValue(b) - getSortableDateValue(a));
-
-  // 페이지 슬라이스
-  const sliced = rows.slice(from, to + 1);
-  return { data: sliced, used: "client_sort" };
+  return { data: rows };
 }
 
-async function listPhotos(page=1){
+function buildModalItem(row){
+  const storagePath = getStoragePathFromRow(row);
+  const { data: pub } = sb.storage.from(BUCKET).getPublicUrl(storagePath || "");
+  const imgUrl = pub.publicUrl;
+
+  const title = getTitleFromRow(row);
+  const desc  = getDescFromRow(row);
+  const nickname = row.nickname || "익명";
+  const dateText = getDisplayDate(row);
+
+  return {
+    id: String(row.id),
+    path: storagePath,
+    url: imgUrl,
+    title,
+    nickname,
+    desc,
+    dateText,
+  };
+}
+
+async function listPhotos(page=1, doScroll=true){
   setStatus("");
   $("list").innerHTML = "";
 
-  // total count (for pagination)
   const cnt = await getTotalCount();
 
-  // fetchRowsWithBestOrder가 최대 500개만 가져와서 정렬하기 때문에
-  // 페이지도 그 범위 기준으로 계산해요.
-  const MAX_FETCH = 500;
-  const effectiveCount = (typeof cnt === "number") ? Math.min(cnt, MAX_FETCH) : MAX_FETCH;
-
-  if(typeof effectiveCount === "number"){
-    totalPages = Math.max(1, Math.ceil(effectiveCount / PAGE_SIZE));
-  }else{
-    totalPages = 1;
-  }
-
-  currentPage = Math.min(Math.max(1, page), totalPages);
-
-  const from = (currentPage - 1) * PAGE_SIZE;
-  const to   = from + PAGE_SIZE - 1;
-
-  const { data, error } = await fetchRowsWithBestOrder(from, to);
-
+  // 전체 목록 갱신
+  const { data: rows, error } = await fetchAllRowsSorted();
   if(error){
     setStatus("불러오기 실패: " + (error.message || error), true);
     console.error(error);
     return;
   }
 
-  // 보여주는 건 "현재 페이지 개수" + total count는 별도로
-  $("count").textContent = String(cnt ?? data.length);
+  allRowsSorted = rows || [];
+  allModalItems = allRowsSorted.map(buildModalItem);
+  modalItems = allModalItems; // ✅ 모달 좌우 이동은 전체 기준
 
-  if(!data || data.length === 0){
+  // total pages (최대 MAX_FETCH까지만)
+  const effectiveCount = (typeof cnt === "number") ? Math.min(cnt, MAX_FETCH) : allRowsSorted.length;
+  totalPages = Math.max(1, Math.ceil((effectiveCount || 1) / PAGE_SIZE));
+  currentPage = Math.min(Math.max(1, page), totalPages);
+
+  // count 표시(실제 총개수는 cnt, 없으면 현재 가져온 만큼)
+  $("count").textContent = String(cnt ?? allRowsSorted.length);
+
+  if(!allRowsSorted.length){
     $("list").innerHTML = '<div class="notice">아직 사진이 없어요! 첫 업로드 해줘요 💖</div>';
     renderPager();
     return;
   }
 
-  modalItems = [];
-  let i = 0;
-  for(const row of data){
-    const storagePath = getStoragePathFromRow(row);
-    const { data: pub } = sb.storage.from(BUCKET).getPublicUrl(storagePath || "");
-    const imgUrl = pub.publicUrl;
+  const from = (currentPage - 1) * PAGE_SIZE;
+  const to   = from + PAGE_SIZE - 1;
 
-    const title = getTitleFromRow(row);
-    const desc  = getDescFromRow(row);
-    const nickname = row.nickname || "익명";
-    const dateText = getDisplayDate(row);
+  const slice = allRowsSorted.slice(from, to + 1);
 
-    modalItems.push({
-      id: String(row.id),
-      path: storagePath,
-      url: imgUrl,
-      title,
-      nickname,
-      desc,
-      dateText,
-    });
+  let localIdx = 0;
+  for(const row of slice){
+    const globalIdx = from + localIdx;
+    const item = allModalItems[globalIdx];
 
     const adminDeleteBtnHtml = IS_ADMIN_PAGE
-      ? `<button class="btn secondary" type="button" data-action="delete" data-id="${row.id}" data-path="${storagePath}">삭제(운영진)</button>`
+      ? `<button class="btn secondary" type="button" data-action="delete" data-id="${row.id}" data-path="${item.path}">삭제(운영진)</button>`
       : ``;
 
     const card = document.createElement("div");
@@ -846,33 +909,35 @@ async function listPhotos(page=1){
     card.innerHTML = `
       <div class="thumb" role="button" tabindex="0"
            data-action="view"
-           data-index="${i}"
+           data-index="${globalIdx}"
            data-id="${row.id}"
-           data-path="${storagePath}"
-           data-url="${imgUrl}"
-           data-title="${escapeHtml(title)}"
-           data-nickname="${escapeHtml(nickname)}"
-           data-desc="${escapeHtml(desc)}"
-           data-date="${escapeHtml(dateText)}">
-        <img alt="" src="${imgUrl}">
+           data-path="${item.path}"
+           data-url="${item.url}"
+           data-title="${escapeHtml(item.title)}"
+           data-nickname="${escapeHtml(item.nickname)}"
+           data-desc="${escapeHtml(item.desc)}"
+           data-date="${escapeHtml(item.dateText)}">
+        <img alt="" src="${item.url}">
       </div>
-      <div class="meta"><span>${escapeHtml(nickname)}</span><span>${escapeHtml(dateText)}</span></div>
-      <div class="title">${escapeHtml(title)}</div>
-      ${desc ? `<div class="desc">${escapeHtml(desc)}</div>` : ``}
+      <div class="meta"><span>${escapeHtml(item.nickname)}</span><span>${escapeHtml(item.dateText)}</span></div>
+      <div class="title">${escapeHtml(item.title)}</div>
+      ${item.desc ? `<div class="desc">${escapeHtml(item.desc)}</div>` : ``}
       <div class="row" style="justify-content:flex-end;margin-top:12px">
-        <button class="btn secondary" type="button" data-action="copy" data-url="${imgUrl}">링크 복사</button>
-        <button class="btn secondary" type="button" data-action="open" data-url="${imgUrl}">원본 보기</button>
+        <button class="btn secondary" type="button" data-action="copy" data-url="${item.url}">링크 복사</button>
+        <button class="btn secondary" type="button" data-action="open" data-url="${item.url}">원본 보기</button>
         ${adminDeleteBtnHtml}
       </div>
     `;
     $("list").appendChild(card);
-    i++;
+    localIdx++;
   }
 
   renderPager();
+  if(doScroll){
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 }
-
-    // Smart insert: try common column name variants (post_date vs date vs taken_at...), then fallback
+// Smart insert: try common column name variants (post_date vs date vs taken_at...), then fallback
     // Smart insert: try common column name variants (post_date vs date vs taken_at...), then fallback
 async function insertPostSafe(payload){
   const tries = [
@@ -1090,8 +1155,12 @@ async function insertPostSafe(payload){
     $("uploadBtn").addEventListener("click", upload);
     $("refreshBtn").addEventListener("click", listPhotos);
 
+    $("prevPageBtn").addEventListener("click", ()=> listPhotos(currentPage - 1));
+    $("nextPageBtn").addEventListener("click", ()=> listPhotos(currentPage + 1));
+
+
     // initial
-    listPhotos();
+    listPhotos(1, false);
   </script>
 
   <!-- Toast -->
