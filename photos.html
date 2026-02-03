@@ -660,7 +660,7 @@
       let m = s.match(/📅\s*(\d{2}\/\d{2}\/\d{2})/);
       if(m) return m[1];
       // YYYY-MM-DD
-      let m = s.match(/\b(\d{4})-(\d{2})-(\d{2})\b/);
+      m = s.match(/\b(\d{4})-(\d{2})-(\d{2})\b/);
       if(m) return fmtYYMMDD(`${m[1]}-${m[2]}-${m[3]}`);
 
       // YY/MM/DD
