@@ -684,6 +684,14 @@ section.card h2{
         <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:12px;border:1px solid var(--line);background:#fff7fa;font-weight:900;">⛵</span>
         <div>
           <div>방랑 길드</div>
+
+  <script>
+    (function(){
+      var d = document.getElementById("debugBadge");
+      if(d){ d.style.display="inline-flex"; d.textContent="JS: inline ok"; }
+    })();
+  </script>
+
           <div class="badge">Mabinogi Mobile · 라사 서버</div>
         </div>
       </div>
@@ -903,6 +911,8 @@ section.card h2{
   <script src="/supabase_config.js"></script>
 
   <script>
+  (function(){ var d=document.getElementById("debugBadge"); if(d){ d.textContent="JS: main start"; } })();
+
   /* =========================
      ✅ 방랑 길드 인덱스
      - 공지/꿀팁: Notion DB → Netlify Functions로 가져와서 "제목 클릭 시 펼침"
