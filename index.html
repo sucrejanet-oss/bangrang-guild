@@ -917,7 +917,7 @@ section.card h2{
     // supabase-js v2 sets global `supabase`
     const startedAt = Date.now();
     const timer = setInterval(()=>{
-      if(window.supabase && window.SUPABASE_URL && window.SUPABASE_ANON_KEY){
+      if(window.SUPABASE_URL && window.SUPABASE_ANON_KEY){
         clearInterval(timer);
         cb();
       }else if(Date.now() - startedAt > 8000){
@@ -1553,7 +1553,7 @@ catch(e){ console.warn('music widget error', e); }
   setDbg('JS: render…');
   renderNotices();
   renderTipPreview();
-  renderPhotoPreview();
+  whenSupabaseReady(renderPhotoPreview);
   </script>
 
 </body>
