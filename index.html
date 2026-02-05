@@ -28,15 +28,7 @@
       --radius2: 18px;
     }
     *{box-sizing:border-box}
-    
-
-    /* Prevent mobile browsers from auto-enlarging text */
-    html{
-      -webkit-text-size-adjust: 100%;
-      text-size-adjust: 100%;
-    }
-
-html,body{
+    html,body{
       margin:0;
       font-family: "Pretendard", -apple-system, BlinkMacSystemFont,
                    "Segoe UI", Roboto, "Noto Sans KR",
@@ -127,7 +119,7 @@ html,body{
       border:1px solid rgba(244,143,177,.35);
       background:#fff5f9;
       color:var(--text);
-      padding:8px 10px;
+      padding:10px 12px;
       border-radius:16px;
       font-weight:700;
       font-size:13px;
@@ -178,7 +170,7 @@ html,body{
     .item{
       border:1px solid rgba(244,143,177,.18);
       background:#fffafb;
-      border-radius:16px;
+      border-radius:18px;
       padding:12px 12px;
     }
     .itemTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
@@ -350,331 +342,6 @@ section.card h2{
   .linkRow{justify-content:center;}
 }
 
-
-/* ===== 귀여운 음악 버튼 ===== */
-.btn.music{
-  border:1px solid rgba(244,143,177,.28);
-  background: #ffffff;
-}
-.btn.music.playing{
-  background: linear-gradient(135deg, #f8bbd0, #f48fb1);
-  color:#ffffff;
-  border:none;
-  box-shadow: 0 6px 16px rgba(244,143,177,.30);
-}
-.btn.music .note{
-  display:inline-block;
-  transform: translateY(0);
-  animation: noteFloat 1.2s ease-in-out infinite;
-}
-.btn.music:not(.playing) .note{animation:none}
-@keyframes noteFloat{
-  0%{transform: translateY(0)}
-  50%{transform: translateY(-2px)}
-  100%{transform: translateY(0)}
-}
-
-/* ===== iOS 감성 + 방랑 핑크 음악 위젯 (한 줄 바) ===== */
-.musicWidget{width:100%;max-width:360px;flex:1 1 320px;min-width:260px}
-.musicBar{
-  position:relative;
-  display:flex;
-  align-items:center;
-  gap:8px;
-  border-radius:18px;
-  border:1px solid rgba(244,143,177,.25);
-  background: linear-gradient(135deg, #fff, #ffe9f1);
-  box-shadow: 0 10px 22px rgba(244,143,177,.22);
-  padding:10px 12px;
-  overflow:hidden;
-}
-.mwInfo{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
-.mwText{min-width:0;flex:1}
-.mwMarquee{
-  position:relative;
-  min-width:0;
-  white-space:nowrap;
-  overflow:hidden;
-  mask-image: linear-gradient(to right, transparent 0, #000 10px, #000 calc(100% - 16px), transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 10px, #000 calc(100% - 16px), transparent 100%);
-}
-.mwMarqueeInner{
-  display:inline-flex;
-  align-items:center;
-  gap:0;
-  font-weight:900;
-  color:#d86b94;
-  font-size:12px;
-}
-.mwMarqueeInner .mwSub{
-  font-weight:750;
-  color:var(--muted);
-}
-.mwT{font-weight:900;color:#d86b94}
-.mwMarquee.scroll .mwMarqueeInner{
-  animation: mwScroll 10s linear infinite;
-}
-@keyframes mwScroll{
-  0%{transform: translateX(0)}
-  100%{transform: translateX(-50%)}
-}
-.mwGap{display:inline-block;width:44px}
-.mwPipe{
-  color:rgba(216,107,148,.6);
-  font-weight:900;
-  font-size:11px;
-  user-select:none;
-}
-.mwCtl{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  flex:0 0 auto;
-}
-.mBtn{
-  cursor:pointer;
-  border:1px solid rgba(244,143,177,.25);
-  background:#ffffff;
-  color:var(--text);
-  padding:7px 8px;
-  border-radius:12px;
-  font-weight:900;
-  font-size:12px;
-  line-height:1;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  user-select:none;
-  -webkit-tap-highlight-color: transparent;
-}
-.mBtn:hover{filter:brightness(1.02)}
-.mBtn.primary{
-  border:none;
-  background: linear-gradient(135deg, #f8bbd0, #f48fb1);
-  color:#fff;
-  box-shadow: 0 8px 18px rgba(244,143,177,.30);
-  position:relative;
-  overflow:hidden;
-}
-.mwDrop{
-  cursor:pointer;
-  border:1px solid rgba(244,143,177,.25);
-  background:#ffffff;
-  color:var(--text);
-  padding:7px 9px;
-  border-radius:12px;
-  font-weight:900;
-  font-size:12px;
-  line-height:1;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  flex:0 0 auto;
-  -webkit-tap-highlight-color: transparent;
-}
-.mwDrop:hover{filter:brightness(1.02)}
-.mwDrop .chev{
-  display:inline-block;
-  transform:translateY(1px);
-  transition:transform .2s ease;
-}
-.mwDrop[aria-expanded="true"] .chev{
-  transform:rotate(180deg) translateY(-1px);
-}
-
-/* 리스트 */
-.musicList{
-  margin-top:8px;
-  border-top:1px dashed rgba(244,143,177,.25);
-  padding-top:8px;
-  overflow:hidden;
-  max-height:0;
-  opacity:0;
-  transform: translateY(-4px);
-  transition: max-height .28s ease, opacity .22s ease, transform .22s ease;
-}
-.musicList.open{
-  max-height:320px;
-  opacity:1;
-  transform: translateY(0);
-}
-.track{
-  display:flex;align-items:center;gap:10px;
-  padding:10px 10px;
-  border-radius:14px;
-  border:1px solid rgba(244,143,177,.18);
-  background:#fffafb;
-  cursor:pointer;
-}
-.track:hover{filter:brightness(1.01)}
-.track .idx{font-weight:900;color:#d86b94;font-size:12px;min-width:18px;text-align:center}
-.track .name{font-weight:850;font-size:13px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.track .dur{margin-left:auto;color:var(--muted);font-size:12px}
-.track.active{border-color:rgba(244,143,177,.45);background:#fff3f8}
-
-/* 재생 중 음표 뿅뿅 */
-.noteBurst{
-  position:absolute;
-  left:50%;top:50%;
-  transform:translate(-50%,-50%);
-  pointer-events:none;
-  opacity:0;
-}
-.mBtn.primary.playing .noteBurst{opacity:1}
-.note{
-  position:absolute;
-  font-size:14px;
-  filter:saturate(.85) brightness(1.05);
-  animation: floatNote 1.1s ease-out forwards;
-}
-@keyframes floatNote{
-  0%{transform: translate(0,0) scale(.9); opacity:0}
-  10%{opacity:1}
-  100%{transform: translate(var(--dx), var(--dy)) scale(1.25); opacity:0}
-}
-
-@media (max-width: 900px){
-  .musicWidget{max-width:100%;min-width:0}
-}
-
-.musicBar.pop{animation: mwPop .24s ease-out;}
-@keyframes mwPop{0%{transform:scale(.995)}100%{transform:scale(1)}}
-
-
-
-/* ===== Hero CTA layout: keep 2 buttons on one line (desktop), music below ===== */
-.hero .ctaRow{flex-wrap:nowrap; align-items:center;}
-.hero .musicWrap{margin-top:12px; width:100%;}
-/* Keep the music bar nicely sized */
-.hero .musicWidget{max-width:520px; width:100%;}
-
-/* Mobile: allow buttons to wrap naturally, center music bar */
-@media (max-width: 900px){
-  .hero .ctaRow{flex-wrap:wrap; justify-content:center;}
-  .hero .musicWrap{display:flex; justify-content:center;}
-}
-
-
-/* ---- Mobile: shrink the music player so it doesn't break layout ---- */
-@media (max-width: 900px){
-  .hero .musicWidget{max-width:360px; width:100%;}
-  .musicBar{
-    padding:8px 10px;
-    border-radius:16px;
-    gap:6px;
-  }
-  .mwMarqueeInner{font-size:11px}
-  .mwMarqueeInner .mwSub{display:none;} /* hide long helper text */
-  .mwGap{width:28px}
-  .mwPipe{display:none;}               /* remove separators to save space */
-  .mBtn{
-    padding:6px 7px;
-    border-radius:10px;
-    font-size:11px;
-  }
-  .mwDrop{
-    padding:6px 8px;
-    border-radius:10px;
-    font-size:11px;
-  }
-}
-
-
-/* ===== 모바일 '미니' 플레이어 모드: 제목 + 재생 + ▾ (펼치면 이전/다음+목록) ===== */
-@media (max-width: 900px){
-  /* 상단 바에서 공간 먹는 요소 숨김 */
-  #mwSub, .mwPipe, #mwPrev, #mwNext{ display:none !important; }
-
-  /* 바 높이/여백 축소 */
-  .musicWidget{max-width: 380px;}
-  .musicBar{ padding:8px 10px; border-radius:18px; gap:8px; }
-
-  /* 제목은 한 줄 말줄임(마퀴 비활성) */
-  .mwMarquee{ overflow:hidden; }
-  .mwMarquee.scroll .mwMarqueeInner{ animation:none !important; transform:none !important; }
-  #mwTitle{ font-size:13px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; max-width: 220px; }
-
-  /* 재생 버튼 살짝 작게 */
-  .mBtn{ width:30px; height:30px; border-radius:999px; }
-  .mBtn.primary{ width:34px; height:34px; }
-
-  /* 드롭(▾) 버튼 */
-  .mwDrop{ width:30px; height:30px; border-radius:999px; }
-
-  /* 펼친 목록 영역: 애니메이션/정렬 */
-  .musicList{ margin-top:8px; }
-  .musicList.open{ animation: mwListPop .18s ease-out; }
-  @keyframes mwListPop{ from{ transform: translateY(-4px); opacity:.0 } to{ transform: translateY(0); opacity:1 } }
-
-  /* 펼쳤을 때 상단 컨트롤(이전/다음) */
-  .mwListTop{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:10px;
-    padding:8px 10px 6px;
-    border:1px solid rgba(244,143,177,.18);
-    background: rgba(255,255,255,.65);
-    border-radius:16px;
-    margin-bottom:8px;
-  }
-  .mwListTop .miniBtn{
-    width:34px;
-    height:34px;
-    border-radius:999px;
-    border:1px solid rgba(244,143,177,.22);
-    background:#fff;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-    font-weight:900;
-  }
-  .mwListTop .miniBtn:active{ transform: translateY(1px); }
-  .mwListTop .hint{ font-size:12px; color: var(--muted); font-weight:700; }
-}
-
-
-/* ===== Hero CTA layout: keep original look (buttons on one row, player below) ===== */
-.hero .ctaRow{
-  flex-wrap:nowrap;
-  align-items:center;
-  margin-top:12px;
-}
-.hero .ctaRow .btn{
-  flex:0 0 auto;
-  white-space:nowrap;
-  padding:10px 12px;
-  font-size:13px;
-}
-.hero .musicWrap{
-  margin-top:12px;
-  width:100%;
-}
-
-/* Make player a bit smaller (desktop + mobile) */
-.hero .musicWidget{
-  width:100%;
-  max-width:520px;
-  min-width:0;
-}
-.hero .musicBar{
-  padding:8px 10px;
-  border-radius:16px;
-  gap:8px;
-}
-.hero .mwText{font-size:12.5px;}
-.hero .mBtn{width:30px;height:30px;}
-.hero .mBtn.primary{width:34px;height:34px;}
-.hero .mwDrop{width:30px;height:30px;}
-
-/* Mobile: center the player and keep buttons pretty */
-@media (max-width: 900px){
-  .hero .ctaRow{justify-content:center; flex-wrap:wrap;}
-  .hero .musicWrap{display:flex; justify-content:center;}
-  .hero .musicWidget{max-width:380px;}
-}
-
 </style>
 </head>
 <body>
@@ -698,14 +365,15 @@ section.card h2{
   </header>
 
   <main class="wrap" id="home">
-    <section class="hero"><div>
+    <section class="hero">
+      <div>
         <h1>각자의 속도로, 오래 함께 가는 길드 <span style="color:var(--brand)">방랑</span></h1>
         <p>
           속도보다 지속, 경쟁보다 호흡. <br/>
           공지와 꿀팁은 여기서 한 번에 확인하고, 게임은 편하게 즐겨요.
         </p>
         <div class="chips">
-          <span class="chip">친목 &amp; 협력</span>
+          <span class="chip">친목 & 협력</span>
           <span class="chip">라이트 ~ 중간 하드</span>
           <span class="chip">정보 공유</span>
           <span class="chip">서로 존중</span>
@@ -714,55 +382,10 @@ section.card h2{
         <div class="ctaRow">
           <a class="btn primary" href="#notice"><span class="emoji">📢</span> 공지 보러가기</a>
           <a class="btn" href="#tips"><span class="emoji">🎮</span> 꿀팁 보러가기</a>
-
-          
-        
         </div>
+      </div>
 
-        <div class="musicWrap">
-<!-- 🎵 방랑 핑크 미니 플레이어 (한 줄 바 / 자동재생 X) -->
-          <div class="musicWidget" id="musicWidget">
-            <div class="musicBar">
-              <div class="mwInfo">
-                                <div class="mwText">
-                  <div aria-label="현재 재생" class="mwMarquee" id="mwMarquee">
-                    <div class="mwMarqueeInner" id="mwMarqueeInner">
-                      <span id="mwTitle">재생할 곡이 없습니다</span>
-                      <span aria-hidden="true" class="mwGap"></span>
-                      <span class="mwSub" id="mwSub">음악 파일을 올려주세요 🎵</span>
-                    </div>
-                  
-        </div>
-
-                </div>
-              </div>
-
-              <span aria-hidden="true" class="mwPipe">ㅣ</span>
-
-              <div aria-label="재생 컨트롤" class="mwCtl">
-                <button aria-label="이전 곡" class="mBtn" id="mwPrev" type="button">⏮</button>
-                <button aria-label="재생/정지" aria-pressed="false" class="mBtn primary" id="mwPlay" type="button">
-                  <span id="mwPlayIcon">▶</span>
-                  <span aria-hidden="true" class="noteBurst" id="mwBurst"></span>
-                </button>
-                <button aria-label="다음 곡" class="mBtn" id="mwNext" type="button">⏭</button>
-              </div>
-
-              <span aria-hidden="true" class="mwPipe">ㅣ</span>
-
-              <button aria-expanded="false" aria-label="곡 목록 열기/닫기" class="mwDrop" id="mwListToggle" type="button">
-                <span class="chev">▾</span>
-              </button>
-            </div>
-
-            <div class="musicList" id="mwList"></div>
-            <audio id="mwAudio" preload="none"></audio>
-          </div>
-        </div>
-</div>
-
-
-    </div><div class="heroCard">
+      <div class="heroCard">
         <div class="kv">
           <div class="kvRow">
             <div class="k">서버</div>
@@ -784,7 +407,8 @@ section.card h2{
         <div class="ctaRow">
           <button class="btn" id="copyInvite">길드 홍보 문구 복사</button>
         </div>
-      </div></section>
+      </div>
+    </section>
 
     <div class="grid">
       <!-- 공지사항 -->
@@ -894,8 +518,6 @@ section.card h2{
 </footer>
   </main>
 
-  <div id="debugBadge" style="position:fixed;right:12px;bottom:12px;z-index:9999;font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid rgba(244,143,177,.25);background:rgba(255,255,255,.75);backdrop-filter:blur(10px);color:#9a7c86;box-shadow:0 10px 24px rgba(244,143,177,.18);display:none">JS: …</div>
-
   
   <!-- Supabase (사진 미리보기용) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -911,33 +533,14 @@ section.card h2{
 
   // ---------- utils ----------
   const $ = (id) => document.getElementById(id);
-  
-  // ---- global error surface (so one JS error doesn't look like "stuck loading") ----
-  function showLoadError(msg){
-    const n = $("noticeList");
-    const t = $("tipState");
-    const p = $("photoState");
-    if(n) n.innerHTML = `<div class="item"><p class="sub" style="margin:0">오류: ${escapeHtml(msg)}</p></div>`;
-    if(t) t.textContent = "오류: " + msg;
-    if(p) p.textContent = "오류: " + msg;
-  }
-  window.addEventListener("error", (e)=>{
-    console.warn("page error", e);
-    showLoadError(e?.message || "스크립트 오류가 발생했어요.");
-  });
-  window.addEventListener("unhandledrejection", (e)=>{
-    console.warn("unhandledrejection", e);
-    showLoadError(e?.reason?.message || String(e?.reason || "요청 처리 중 오류가 발생했어요."));
-  });
-
 
   function escapeHtml(s){
     return String(s||"")
-      .replace(/&/g,"&amp;")
-      .replace(/</g,"&lt;")
-      .replace(/>/g,"&gt;")
-      .replace(/"/g,"&quot;")
-      .replace(/'/g,"&#39;");
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#39;");
   }
 
   function toParagraphs(text){
@@ -1097,7 +700,7 @@ function renderImages(urls){
         return;
       }
 
-      el.innerHTML = filtered.slice(0,4).map(item=>{
+      el.innerHTML = filtered.slice(0,20).map(item=>{
         const badgePin = item.icon==="📌" ? `<span class="tag important">📌 고정</span>` : "";
         const cat = item.category ? `<span class="tag">${escapeHtml(item.category)}</span>` : "";
         const meta = `
@@ -1129,7 +732,7 @@ function renderImages(urls){
   }
 
   
-  // ---------- 꿀팁 미리보기: Notion에서 최신 4개 ----------
+  // ---------- 꿀팁 미리보기: Notion에서 최신 3개 ----------
   async function renderTipPreview(){
     const stateEl = $("tipState");
     const listEl  = $("tipPreview");
@@ -1151,7 +754,7 @@ function renderImages(urls){
 
       stateEl.style.display = "none";
       listEl.style.display = "grid";
-      listEl.innerHTML = list.slice(0,4).map(item=>{
+      listEl.innerHTML = list.slice(0,3).map(item=>{
         const tags = (item.tags||[]).filter(Boolean);
         const mainBadges = (tags.length ? tags.slice(0,2) : (item.category ? [item.category] : []))
           .map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join("");
@@ -1267,229 +870,7 @@ function renderImages(urls){
     });
   }
 
-
-  // ---------- 🎵 방랑 핑크 미니 플레이어 ----------
-  // ✅ 처음엔 1곡만 보이게, '리스트' 버튼을 누르면 아래로 펼쳐져요.
-  // ✅ 자동재생 X (사용자 클릭으로만 재생)
-  // ✅ 아래 playlist 배열에 곡을 추가하면 여러 곡도 가능!
-
-  try{
-const mw = {
-    title: $("mwTitle"),
-    sub: $("mwSub"),
-    marquee: $("mwMarquee"),
-    marqueeInner: $("mwMarqueeInner"),
-    playIcon: $("mwPlayIcon"),
-    audio: $("mwAudio"),
-    list: $("mwList"),
-    listToggle: $("mwListToggle"),
-    prev: $("mwPrev"),
-    next: $("mwNext"),
-    play: $("mwPlay"),
-    burst: $("mwBurst"),
-  };
-
-  const playlist = [
-    // 👇 여기만 바꾸면 돼요!
-    // { title: "곡 제목", artist: "설명/제작자", src: "/music/guild-bgm.mp3" },
-    { title: "길드 음악", artist: "방랑 · 길드원 제작", src: "/music/guild-bgm.mp3" },
-  ];
-
-  if(mw.audio && mw.play && mw.list && mw.title && mw.sub){
-    let idx = 0;
-    let playing = false;
-    let burstTimer = null;
-
-    const setPlayUI = ()=>{
-      mw.play.setAttribute("aria-pressed", playing ? "true" : "false");
-      mw.play.classList.toggle("playing", playing);
-      if(mw.playIcon) mw.playIcon.textContent = playing ? "⏸" : "▶";
-    };
-
-
-    const updateMarquee = ()=>{
-      if(!mw.marquee || !mw.marqueeInner) return;
-
-      const t = (mw.title?.textContent || "").trim();
-      const s = (mw.sub?.textContent || "").trim();
-      const line = s
-        ? `<span class="mwT">${escapeHtml(t)}</span><span aria-hidden="true"> · </span><span class="mwSub">${escapeHtml(s)}</span>`
-        : `<span class="mwT">${escapeHtml(t)}</span>`;
-
-      // 두 번 복제해서 자연스럽게 반복
-      mw.marqueeInner.innerHTML = `
-        <span class="mwLine">${line}</span>
-        <span class="mwGap" aria-hidden="true"></span>
-        <span class="mwLine">${line}</span>
-      `;
-
-      // 오버플로우일 때만 스크롤
-      requestAnimationFrame(()=>{
-        const need = mw.marqueeInner.scrollWidth > mw.marquee.clientWidth + 8;
-        mw.marquee.classList.toggle("scroll", need);
-      });
-    };
-
-    
-const renderList = ()=>{
-  if(!playlist.length){
-    mw.list.innerHTML = "";
-    return;
-  }
-  const mobile = window.matchMedia("(max-width: 900px)").matches;
-
-  const top = mobile ? `
-    <div class="mwListTop">
-      <button class="miniBtn" type="button" data-act="prev" aria-label="이전 곡">⏮</button>
-      <div class="hint">곡 선택</div>
-      <button class="miniBtn" type="button" data-act="next" aria-label="다음 곡">⏭</button>
-    </div>
-  ` : "";
-
-  const tracks = playlist.map((t, i)=>{
-    const active = i===idx ? "active" : "";
-    return `
-      <div class="track ${active}" data-idx="${i}">
-        <div class="idx">${i+1}</div>
-        <div class="name">${escapeHtml(t.title || "(제목 없음)")}</div>
-        <div class="dur">${i===idx && playing ? "재생중" : ""}</div>
-      </div>
-    `;
-  }).join("");
-
-  mw.list.innerHTML = top + tracks;
-};
-
-
-    const load = (i, autoplay=false)=>{
-      if(!playlist.length){
-        mw.title.textContent = "재생할 곡이 없습니다";
-        mw.sub.textContent = "음악 파일을 올려주세요 🎵";
-        mw.audio.removeAttribute("src");
-        updateMarquee();
-        renderList();
-        return;
-      }
-      idx = (i + playlist.length) % playlist.length;
-      const t = playlist[idx];
-      mw.title.textContent = t.title || "(제목 없음)";
-      mw.sub.textContent = t.artist || "";
-      mw.audio.src = t.src;
-      mw.audio.load();
-      updateMarquee();
-      renderList();
-      if(autoplay) play();
-    };
-
-    const spawnNote = ()=>{
-      if(!mw.burst) return;
-      const note = document.createElement("span");
-      note.className = "note";
-      note.textContent = Math.random() < 0.6 ? "♪" : "🎵";
-
-      const dx = (Math.random()*90 - 45).toFixed(1) + "px";
-      const dy = (-(Math.random()*70 + 35)).toFixed(1) + "px";
-      note.style.setProperty("--dx", dx);
-      note.style.setProperty("--dy", dy);
-
-      // 위치를 살짝 랜덤
-      note.style.left = (Math.random()*18 - 9).toFixed(1) + "px";
-      note.style.top = (Math.random()*10 - 5).toFixed(1) + "px";
-
-      mw.burst.appendChild(note);
-      note.addEventListener("animationend", ()=> note.remove(), { once:true });
-    };
-
-    const startBurst = ()=>{
-      stopBurst();
-      spawnNote();
-      burstTimer = setInterval(spawnNote, 320);
-    };
-    const stopBurst = ()=>{
-      if(burstTimer){ clearInterval(burstTimer); burstTimer = null; }
-      if(mw.burst) mw.burst.innerHTML = "";
-    };
-
-    const play = async ()=>{
-      try{
-        await mw.audio.play();
-        playing = true;
-        setPlayUI();
-        startBurst();
-        renderList();
-      }catch(err){
-        playing = false;
-        setPlayUI();
-        stopBurst();
-        alert("음악을 재생할 수 없어요 😢\n(1) 파일 경로가 맞는지\n(2) mp3가 사이트에 업로드되어 있는지 확인해줘요!");
-      }
-    };
-
-    const pause = ()=>{
-      mw.audio.pause();
-      playing = false;
-      setPlayUI();
-      stopBurst();
-      renderList();
-    };
-
-    mw.play.addEventListener("click", ()=>{
-      if(!playlist.length) return;
-      if(mw.audio.paused) play(); else pause();
-    });
-    mw.next.addEventListener("click", ()=> load(idx+1, playing));
-    mw.prev.addEventListener("click", ()=> load(idx-1, playing));
-
-    mw.audio.addEventListener("ended", ()=>{
-      // 한 곡 반복이 아니라면 다음 곡으로 넘기고 싶으면 아래 줄을 살리면 돼요.
-      // load(idx+1, true);
-      playing = false;
-      setPlayUI();
-      stopBurst();
-      renderList();
-    });
-
-    // 리스트 펼치기/접기
-    if(mw.listToggle){
-      mw.listToggle.addEventListener("click", ()=>{
-        const open = mw.list.classList.toggle("open");
-        mw.listToggle.setAttribute("aria-expanded", open ? "true" : "false");
-        // ✨ 살짝 팝 애니메이션
-        const bar = document.querySelector("#musicWidget .musicBar");
-        if(bar){
-          bar.classList.remove("pop");
-          // reflow
-          void bar.offsetWidth;
-          bar.classList.add("pop");
-        }
-      });
-    })
-
-    // 리스트에서 곡 선택
-    mw.list.addEventListener("click", (e)=>{
-      const actBtn = e.target.closest("[data-act]");
-      if(actBtn){
-        const act = actBtn.getAttribute("data-act");
-        if(act==="prev") { load(idx-1, true); }
-        if(act==="next") { load(idx+1, true); }
-        return;
-      }
-
-      const row = e.target.closest(".track");
-      if(!row) return;
-      const i = Number(row.dataset.idx);
-      load(i, true);
-    });
-
-    // 최초 로드(처음엔 1곡만 카드에 표시)
-    load(0, false);
-    setPlayUI();
-  }
-
-  }
-catch(e){ console.warn('music widget error', e); }
-
-// ---------- start ----------
+  // ---------- start ----------
   renderNotices();
   renderTipPreview();
   renderPhotoPreview();
