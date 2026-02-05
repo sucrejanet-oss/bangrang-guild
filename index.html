@@ -28,7 +28,15 @@
       --radius2: 18px;
     }
     *{box-sizing:border-box}
-    html,body{
+    
+
+    /* Prevent mobile browsers from auto-enlarging text */
+    html{
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+html,body{
       margin:0;
       font-family: "Pretendard", -apple-system, BlinkMacSystemFont,
                    "Segoe UI", Roboto, "Noto Sans KR",
@@ -901,14 +909,33 @@ section.card h2{
 
   // ---------- utils ----------
   const $ = (id) => document.getElementById(id);
+  
+  // ---- global error surface (so one JS error doesn't look like "stuck loading") ----
+  function showLoadError(msg){
+    const n = $("noticeList");
+    const t = $("tipState");
+    const p = $("photoState");
+    if(n) n.innerHTML = `<div class="item"><p class="sub" style="margin:0">오류: ${escapeHtml(msg)}</p></div>`;
+    if(t) t.textContent = "오류: " + msg;
+    if(p) p.textContent = "오류: " + msg;
+  }
+  window.addEventListener("error", (e)=>{
+    console.warn("page error", e);
+    showLoadError(e?.message || "스크립트 오류가 발생했어요.");
+  });
+  window.addEventListener("unhandledrejection", (e)=>{
+    console.warn("unhandledrejection", e);
+    showLoadError(e?.reason?.message || String(e?.reason || "요청 처리 중 오류가 발생했어요."));
+  });
+
 
   function escapeHtml(s){
     return String(s||"")
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#39;");
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;")
+      .replace(/'/g,"&#39;");
   }
 
   function toParagraphs(text){
@@ -1244,7 +1271,8 @@ function renderImages(urls){
   // ✅ 자동재생 X (사용자 클릭으로만 재생)
   // ✅ 아래 playlist 배열에 곡을 추가하면 여러 곡도 가능!
 
-  const mw = {
+  try{
+const mw = {
     title: $("mwTitle"),
     sub: $("mwSub"),
     marquee: $("mwMarquee"),
@@ -1456,7 +1484,10 @@ const renderList = ()=>{
     setPlayUI();
   }
 
-  // ---------- start ----------
+  }
+catch(e){ console.warn('music widget error', e); }
+
+// ---------- start ----------
   renderNotices();
   renderTipPreview();
   renderPhotoPreview();
