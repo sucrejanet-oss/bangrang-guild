@@ -1232,55 +1232,68 @@ function renderImages(urls){
     const gridEl  = $("photoPreview");
     if(!stateEl || !gridEl) return;
 
+    const BUCKET = "bangrang-photos";
+    const TABLE  = "photo_posts";
+
     // supabase_config.js 누락 시
-    if(!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY || !window.supabase){
+    if(!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY){
       stateEl.textContent = "사진 미리보기 설정이 아직 없어요. (supabase_config.js 확인)";
       gridEl.style.display = "none";
       return;
     }
 
-    const sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-    const BUCKET = "bangrang-photos";
-    const TABLE  = "photo_posts";
-
+    stateEl.style.display = "block";
     stateEl.textContent = "불러오는 중...";
     gridEl.style.display = "none";
 
-    const { data, error } = await sb
-      .from(TABLE)
-      .select("id, image_path, caption, nickname, created_at, taken_on")
-      .order("created_at", { ascending:false })
-      .limit(4);
+    try{
+      // REST API로 직접 조회(라이브러리 의존성 제거)
+      const url = window.SUPABASE_URL.replace(/\/$/,"") + `/rest/v1/${TABLE}?select=id,image_path,caption,nickname,created_at,taken_on&order=created_at.desc&limit=4`;
+      const res = await fetch(url, {
+        headers: {
+          apikey: window.SUPABASE_ANON_KEY,
+          Authorization: "Bearer " + window.SUPABASE_ANON_KEY
+        }
+      });
+      const txt = await res.text();
+      if(!res.ok){
+        throw new Error(`DB 조회 실패 (${res.status}) ${txt.slice(0,120)}`);
+      }
+      let data = [];
+      try{ data = JSON.parse(txt); }catch(_e){ data = []; }
 
-    if(error){
-      stateEl.textContent = "사진 불러오기 실패: " + error.message;
+      if(!data || data.length === 0){
+        stateEl.textContent = "아직 등록된 사진이 없어요. 첫 업로드 해줘요 💖";
+        gridEl.style.display = "none";
+        return;
+      }
+
+      // public URL 직접 구성
+      const base = window.SUPABASE_URL.replace(/\/$/,"") + `/storage/v1/object/public/${BUCKET}/`;
+
+      stateEl.style.display = "none";
+      gridEl.style.display = "grid";
+      gridEl.innerHTML = data.map(row=>{
+        const path = row.image_path || "";
+        // encodeURI는 슬래시를 유지(폴더 경로 지원)
+        const imgUrl = base + encodeURI(path);
+        const title = escapeHtml(row.caption || "사진");
+        const who = escapeHtml(row.nickname || "익명");
+        return `
+          <a class="miniCard" href="/photos.html" style="padding:10px; border-radius:18px; overflow:hidden;">
+            <div style="width:100%; aspect-ratio:1/1; border-radius:14px; overflow:hidden; border:1px solid rgba(244,143,177,.18); background:#fff7fa;">
+              <img src="${imgUrl}" alt="${title}" style="width:100%; height:100%; object-fit:cover; display:block;">
+            </div>
+            <div style="margin-top:8px; font-weight:800; font-size:13px; line-height:1.25; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${title}</div>
+            <div style="margin-top:4px; font-size:12px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">👤 ${who}</div>
+          </a>
+        `;
+      }).join("");
+    }catch(err){
+      console.warn("photo preview error", err);
+      stateEl.textContent = "사진 불러오기 실패: " + (err?.message || err);
       gridEl.style.display = "none";
-      return;
     }
-
-    if(!data || data.length === 0){
-      stateEl.textContent = "아직 등록된 사진이 없어요. 첫 업로드 해줘요 💖";
-      gridEl.style.display = "none";
-      return;
-    }
-
-    stateEl.style.display = "none";
-    gridEl.style.display = "grid";
-    gridEl.innerHTML = data.map(row=>{
-      const { data: pub } = sb.storage.from(BUCKET).getPublicUrl(row.image_path);
-      const imgUrl = pub.publicUrl;
-      const title = escapeHtml(row.caption || "사진");
-      const who = escapeHtml(row.nickname || "익명");
-      return `
-        <a class="miniCard" href="/photos.html" style="padding:10px; border-radius:18px; overflow:hidden;">
-          <div style="width:100%; aspect-ratio:1/1; border-radius:14px; overflow:hidden; border:1px solid rgba(244,143,177,.18); background:#fff7fa;">
-            <img src="${imgUrl}" alt="${title}" style="width:100%; height:100%; object-fit:cover; display:block;">
-          </div>
-          <div style="margin-top:8px; font-weight:800; font-size:13px; line-height:1.25; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${title}</div>
-          <div style="margin-top:4px; font-size:12px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">👤 ${who}</div>
-        </a>
-      `;
-    }).join("");
   }
 
   // ---------- UI events ----------
