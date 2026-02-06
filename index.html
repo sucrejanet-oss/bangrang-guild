@@ -676,6 +676,17 @@ section.card h2{
 }
 
 </style>
+
+<style>
+/* ==== fix: show playlist but only one current title ==== */
+/* hide duplicated current-title label inside list rows only */
+.musicList .nowPlayingTitle,
+.musicList .currentTitle,
+.musicList .trackTitle.current{
+  display:none !important;
+}
+</style>
+
 </head>
 <body>
   <header class="topbar">
@@ -755,7 +766,7 @@ section.card h2{
               </button>
             </div>
 
-            <div class="musicList" id="mwList" style="display:none"></div>
+            <div class="musicList" id="mwList"></div>
             <audio id="mwAudio" preload="none"></audio>
           </div>
         </div>
@@ -1309,7 +1320,7 @@ function renderImages(urls){
     copyBtn.addEventListener("click", async ()=>{
       const text =
 `6렙 [방랑]에서 함께하실 여행자 분을 찾아요!
-- 라이트~중간 하드 / 친목&협력 / 길드함선완료 / 옵톡필,디코자유
+- 라이트~중간 하드 / 친목&협력 / 옵톡필,디코자유
 - 문의: 길마 '군림' 귓`;
       try{
         await navigator.clipboard.writeText(text);
@@ -1343,12 +1354,10 @@ const mw = {
   };
 
   const playlist = [
-  { 
-    title: "콩팥단 케이팝", 
-    artist: "by 콩알이", 
-    src: "https://crphaesxzewgutqjielu.supabase.co/storage/v1/object/public/music/kongpatdan-kpop-by-kongali.mp3"
-  }
-];
+    // 👇 여기만 바꾸면 돼요!
+    // { title: "곡 제목", artist: "설명/제작자", src: "/music/guild-bgm.mp3" },
+    { title: "길드 음악", artist: "방랑 · 길드원 제작", src: "/music/guild-bgm.mp3" },
+  ];
 
   if(mw.audio && mw.play && mw.list && mw.title && mw.sub){
     let idx = 0;
@@ -1550,6 +1559,19 @@ catch(e){ console.warn('music widget error', e); }
   renderTipPreview();
   whenSupabaseReady(renderPhotoPreview);
   </script>
+
+
+<script>
+/* fallback: if duplicate titles render, keep only first */
+document.addEventListener("DOMContentLoaded", function(){
+  const els = document.querySelectorAll("#musicTitle, .musicTitle");
+  if(els.length > 1){
+    for(let i=1;i<els.length;i++){
+      els[i].remove();
+    }
+  }
+});
+</script>
 
 </body>
 </html>
