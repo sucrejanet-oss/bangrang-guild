@@ -1388,13 +1388,8 @@ const mw = {
         ? `<span class="mwT">${escapeHtml(t)}</span><span aria-hidden="true"> · </span><span class="mwSub">${escapeHtml(s)}</span>`
         : `<span class="mwT">${escapeHtml(t)}</span>`;
 
-      // 두 번 복제해서 자연스럽게 반복
-      mw.marqueeInner.innerHTML = `
-        <span class="mwLine">${line}</span>
-        <span class="mwGap" aria-hidden="true"></span>
-        <span class="mwLine">${line}</span>
-      `;
-
+      // ✅ 한 번만 출력
+       mw.marqueeInner.innerHTML = line;
       // 오버플로우일 때만 스크롤
       requestAnimationFrame(()=>{
         const need = mw.marqueeInner.scrollWidth > mw.marquee.clientWidth + 8;
@@ -1513,8 +1508,7 @@ const renderList = ()=>{
     mw.prev.addEventListener("click", ()=> load(idx-1, playing));
 
     mw.audio.addEventListener("ended", ()=>{
-      // 한 곡 반복이 아니라면 다음 곡으로 넘기고 싶으면 아래 줄을 살리면 돼요.
-      // load(idx+1, true);
+      load(idx+1, true);  // ← 자동 다음곡
       playing = false;
       setPlayUI();
       stopBurst();
