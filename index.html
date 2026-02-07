@@ -589,9 +589,9 @@ section.card h2{
   .musicWidget{max-width: 380px;}
   .musicBar{ padding:8px 10px; border-radius:18px; gap:8px; }
 
-  /* 제목은 한 줄 말줄임(마퀴 비활성) */
+  /* 🎵 모바일에서도 제목 흐르게 */
   .mwMarquee{ overflow:hidden; }
-  .mwMarquee.scroll .mwMarqueeInner{ animation:none !important; transform:none !important; }
+  .mwMarquee.scroll .mwMarqueeInner{ mwScroll 20s linear infinite;}
   #mwTitle{ font-size:13px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; max-width: 220px; }
 
   /* 재생 버튼 살짝 작게 */
