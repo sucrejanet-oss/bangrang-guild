@@ -407,7 +407,9 @@ section.card h2{
   animation: mwScroll 10s linear infinite;
 }
 @keyframes mwScroll{
-  0%{transform: translateX(0)}
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
   100%{transform: translateX(-50%)}
 }
 .mwGap{display:inline-block;width:44px}
