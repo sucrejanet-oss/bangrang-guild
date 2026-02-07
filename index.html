@@ -382,32 +382,12 @@ section.card h2{
 }
 .mwInfo{display:flex;align-items:center;gap:8px;min-width:0;flex:1}
 .mwText{min-width:0;flex:1}
-.mwMarquee{
-  position:relative;
-  min-width:0;
-  white-space:nowrap;
-  overflow:hidden;
-  mask-image: linear-gradient(to right, transparent 0, #000 10px, #000 calc(100% - 16px), transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 10px, #000 calc(100% - 16px), transparent 100%);
-}
-.mwMarqueeInner{
-  display:inline-flex;
-  align-items:center;
-  gap:0;
-  font-weight:900;
-  color:#d86b94;
-  font-size:12px;
-}
-.mwMarqueeInner .mwSub{
-  font-weight:750;
-  color:var(--muted);
-}
+
+
+
 .mwT{font-weight:900;color:#d86b94}
-.mwMarquee.scroll .mwMarqueeInner{
-  animation: mwScroll 10s linear infinite;
-}
-@keyframes mwScroll{
-  from { transform: translateX(0); }
+
+
   to { transform: translateX(-100%); }
 }
 .mwGap{display:inline-block;width:44px}
@@ -519,8 +499,7 @@ section.card h2{
   filter:saturate(.85) brightness(1.05);
   animation: floatNote 1.1s ease-out forwards;
 }
-@keyframes floatNote{
-  0%{transform: translate(0,0) scale(.9); opacity:0}
+
   10%{opacity:1}
   100%{transform: translate(var(--dx), var(--dy)) scale(1.25); opacity:0}
 }
@@ -530,7 +509,7 @@ section.card h2{
 }
 
 .musicBar.pop{animation: mwPop .24s ease-out;}
-@keyframes mwPop{0%{transform:scale(.995)}100%{transform:scale(1)}}
+100%{transform:scale(1)}}
 
 
 
@@ -555,8 +534,8 @@ section.card h2{
     border-radius:16px;
     gap:6px;
   }
-  .mwMarqueeInner{font-size:11px}
-  .mwMarqueeInner .mwSub{display:none;} /* hide long helper text */
+  
+   /* hide long helper text */
   .mwGap{width:28px}
   .mwPipe{display:none;}               /* remove separators to save space */
   .mBtn{
@@ -582,8 +561,8 @@ section.card h2{
   .musicBar{ padding:8px 10px; border-radius:18px; gap:8px; }
 
   /* 🎵 모바일에서도 제목 흐르게 */
-  .mwMarquee{ overflow:hidden; }
-  .mwMarquee.scroll .mwMarqueeInner{ animation: mwScroll 20s linear infinite;}
+  
+  
   #mwTitle{ font-size:13px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; max-width: 220px; }
 
   /* 재생 버튼 살짝 작게 */
@@ -596,7 +575,7 @@ section.card h2{
   /* 펼친 목록 영역: 애니메이션/정렬 */
   .musicList{ margin-top:8px; }
   .musicList.open{ animation: mwListPop .18s ease-out; }
-  @keyframes mwListPop{ from{ transform: translateY(-4px); opacity:.0 } to{ transform: translateY(0); opacity:1 } }
+   to{ transform: translateY(0); opacity:1 } }
 
   /* 펼쳤을 때 상단 컨트롤(이전/다음) */
   .mwListTop{
@@ -1567,5 +1546,33 @@ document.addEventListener("DOMContentLoaded", function(){
 });
 </script>
 
+
+<script>
+(function(){
+  function startScroll(){
+    const wrap = document.querySelector('.mwMarquee');
+    const title = document.getElementById('mwTitle');
+    if(!wrap || !title) return;
+
+    title.style.whiteSpace = 'nowrap';
+    title.style.display = 'inline-block';
+
+    let x = wrap.offsetWidth;
+    const speed = 0.6;
+
+    function tick(){
+      x -= speed;
+      if(x < -title.offsetWidth){
+        x = wrap.offsetWidth;
+      }
+      title.style.transform = 'translateX(' + x + 'px)';
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+  window.addEventListener('load', startScroll);
+})();
+</script>
 </body>
+
 </html>
