@@ -367,15 +367,7 @@ section.card h2{
   transform: translateY(0);
   animation: noteFloat 1.2s ease-in-out infinite;
 }
-.btn.music:not(.playing) .note{animation:none}
-@keyframes noteFloat{
-  0%{transform: translateY(0)}
-  50%{transform: translateY(-2px)}
-  100%{transform: translateY(0)}
-}
-
-/* ===== iOS 감성 + 방랑 핑크 음악 위젯 (한 줄 바) ===== */
-.musicWidget{width:100%;max-width:360px;flex:1 1 320px;min-width:260px}
+.btn.music:not(.playing) .note{max-width:360px;flex:1 1 320px;min-width:260px}
 .musicBar{
   position:relative;
   display:flex;
@@ -591,7 +583,7 @@ section.card h2{
 
   /* 🎵 모바일에서도 제목 흐르게 */
   .mwMarquee{ overflow:hidden; }
-  .mwMarquee.scroll .mwMarqueeInner{ animation: mwScroll 20s linear infinite;}
+  .mwMarquee.scroll .mwMarqueeInner{ animation: animation: mwScroll 20s linear infinite;}
   #mwTitle{ font-size:13px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; max-width: 220px; }
 
   /* 재생 버튼 살짝 작게 */
