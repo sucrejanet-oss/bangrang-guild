@@ -1410,7 +1410,10 @@ const mw = {
 
       const first = inner.querySelector(".mwLine");
       const gap = inner.querySelector(".mwGap");
-      const gapW = gap ? gap.getBoundingClientRect().width : 44;
+      // ✅ 두 번째 복사본이 화면에 같이 보이지 않게, 간격을 컨테이너 폭만큼 크게 잡아요
+      const wrapW = wrap.getBoundingClientRect().width;
+      const gapW = Math.max(wrapW + 40, 200);
+      if(gap) gap.style.width = gapW + "px";
 
       let x = 0;
       const speed = 0.55; // px per frame-ish (tweakable)
