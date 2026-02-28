@@ -506,6 +506,22 @@ section.card h2{
 .track .idx{font-weight:900;color:#d86b94;font-size:12px;min-width:18px;text-align:center}
 .track .name{font-weight:850;font-size:13px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .track .dur{margin-left:auto;color:var(--muted);font-size:12px}
+.track .actions{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.track .dur{margin-left:0;}
+.lyBtn{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:32px;height:32px;border-radius:12px;
+  border:1px solid rgba(244,143,177,.28);
+  background:rgba(255,255,255,.75);
+  color:#c34b77;
+  cursor:pointer;
+  flex:0 0 auto;
+  -webkit-tap-highlight-color: transparent;
+}
+.lyBtn:hover{filter:brightness(1.02)}
+.lyBtn:active{transform:translateY(1px)}
+.lyIco{width:18px;height:18px}
+
 .track.active{border-color:rgba(244,143,177,.45);background:#fff3f8}
 
 /* 재생 중 음표 뿅뿅 */
@@ -1735,7 +1751,7 @@ AI 마법 뚝딱! 뚝딱!
   },
   {
    title: "Steel & Sweet",
-   artist: "Lyrics by 너희집막내 Prod. 콩알이",
+   artist: "방랑",
    src: "https://crphaesxzewgutqjielu.supabase.co/storage/v1/object/public/music/steelandsweet.mp3",
    lyrics: `[Intro - Male]
 Tanned skin, untainted tension
@@ -1905,11 +1921,19 @@ const renderList = ()=>{
 
   const tracks = playlist.map((t, i)=>{
     const active = i===idx ? "active" : "";
+    const hasLyrics = !!(t && t.lyrics && String(t.lyrics).trim());
     return `
       <div class="track ${active}" data-idx="${i}">
         <div class="idx">${i+1}</div>
         <div class="name">${escapeHtml(t.title || "(제목 없음)")}</div>
-        <div class="dur">${i===idx && playing ? "재생중" : ""}</div>
+        <div class="actions">
+          ${hasLyrics ? `<button class="lyBtn" type="button" data-ly="${i}" aria-label="가사 보기"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#d86b94" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <path d="M4 4h12v12H4z"/>
+  <path d="M8 8h6M8 12h6"/>
+  <path d="M18 6l.6 1.4L20 8l-1.4.6L18 10l-.6-1.4L16 8l1.4-.6z"/>
+</svg></button>` : ``}
+          <div class="dur">${i===idx && playing ? "재생중" : ""}</div>
+        </div>
       </div>
     `;
   }).join("");
