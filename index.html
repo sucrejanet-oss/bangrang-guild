@@ -2067,37 +2067,53 @@ const renderList = ()=>{
 catch(e){ console.warn('music widget error', e); }
 
 
-    // ===== Lyrics modal wiring =====
-    const lyModal = document.getElementById("lyModal");
-    const lyTitleEl = document.getElementById("lyTitleEl");
-    const lyMetaEl  = document.getElementById("lyMetaEl");
-    const lyBodyEl  = document.getElementById("lyBodyEl");
+    // ===== Lyrics modal wiring (safe: elements may appear after scripts) =====
+    function getLyEls(){
+      return {
+        modal: document.getElementById("lyModal"),
+        title: document.getElementById("lyTitleEl"),
+        meta:  document.getElementById("lyMetaEl"),
+        body:  document.getElementById("lyBodyEl"),
+      };
+    }
 
     function openLyrics(i){
-      const t = playlist[i];
+      const t = (window.playlist || [])[i];
       if(!t || !(t.lyrics && String(t.lyrics).trim())) return;
-      lyTitleEl.textContent = t.title || "가사";
-      lyMetaEl.textContent  = t.artist || "";
-      lyBodyEl.textContent  = t.lyrics;
-      lyModal.classList.add("open");
-      lyModal.setAttribute("aria-hidden","false");
+
+      const els = getLyEls();
+      if(!els.modal || !els.title || !els.meta || !els.body){
+        console.warn("Lyrics modal elements not found (check lyModal markup/ids).");
+        return;
+      }
+
+      els.title.textContent = t.title || "가사";
+      els.meta.textContent  = t.artist || "";
+      els.body.textContent  = t.lyrics;
+      els.modal.classList.add("open");
+      els.modal.setAttribute("aria-hidden","false");
       document.body.style.overflow = "hidden";
     }
+
     function closeLyrics(){
-      lyModal.classList.remove("open");
-      lyModal.setAttribute("aria-hidden","true");
+      const els = getLyEls();
+      if(!els.modal) return;
+      els.modal.classList.remove("open");
+      els.modal.setAttribute("aria-hidden","true");
       document.body.style.overflow = "";
     }
 
-    if(lyModal){
-      lyModal.addEventListener("click", (e)=>{
+    // wire close handlers after DOM is ready
+    document.addEventListener("DOMContentLoaded", ()=>{
+      const els = getLyEls();
+      if(!els.modal) return;
+      els.modal.addEventListener("click", (e)=>{
         if(e.target.closest("[data-ly-close]")) closeLyrics();
       });
       window.addEventListener("keydown", (e)=>{
-        if(e.key === "Escape" && lyModal.classList.contains("open")) closeLyrics();
+        if(e.key === "Escape" && els.modal.classList.contains("open")) closeLyrics();
       });
-    }
-
+    });
 // ---------- start ----------
   setDbg('JS: render…');
   renderNotices();
