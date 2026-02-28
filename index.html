@@ -488,7 +488,9 @@ section.card h2{
   transition: max-height .28s ease, opacity .22s ease, transform .22s ease;
 }
 .musicList.open{
-  max-height:320px;
+  max-height:60vh;
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
   opacity:1;
   transform: translateY(0);
 }
@@ -712,6 +714,75 @@ nav{
   .photoGrid{grid-template-columns:repeat(2, 1fr);}
 }
 /* ===== END PATCH ===== */
+
+
+/* ===== Lyrics Modal ===== */
+.lyModal{
+  position:fixed;
+  inset:0;
+  display:none;
+  z-index:9999;
+}
+.lyModal.open{ display:block; }
+.lyBackdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  backdrop-filter:blur(6px);
+}
+.lyPanel{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  width:min(560px, calc(100vw - 28px));
+  max-height:min(72vh, 720px);
+  overflow:hidden;
+  border-radius:20px;
+  border:1px solid rgba(244,143,177,.25);
+  background: linear-gradient(180deg, #ffffff, #fff3f8);
+  box-shadow: 0 18px 40px rgba(0,0,0,.18);
+}
+.lyHead{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  padding:14px 14px 10px;
+  border-bottom:1px dashed rgba(244,143,177,.25);
+}
+.lyTitle{
+  font-weight:900;
+  color:#d86b94;
+  font-size:15px;
+}
+.lyMeta{
+  margin-top:4px;
+  font-size:12px;
+  color: var(--muted);
+  font-weight:700;
+}
+.lyClose{
+  cursor:pointer;
+  border:1px solid rgba(244,143,177,.25);
+  background:#fff;
+  width:34px;
+  height:34px;
+  border-radius:999px;
+  font-weight:900;
+}
+.lyBody{
+  margin:0;
+  padding:14px;
+  max-height: calc(min(72vh, 720px) - 62px);
+  overflow:auto;
+  -webkit-overflow-scrolling: touch;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size:12.5px;
+  line-height:1.6;
+  color: var(--text);
+  white-space: pre-wrap;
+}
 
 </style>
 
@@ -1454,40 +1525,50 @@ const mw = {
       const wrap = mw.marquee;
       const inner = mw.marqueeInner;
 
-      // Get plain text (strip tags)
-      const text = (inner.textContent || "").trim();
+      // IMPORTANT: stop any CSS animation so JS transform wins
+      inner.style.animation = "none";
+
+      const t = (mw.title?.textContent || "").trim();
+      const s = (mw.sub?.textContent || "").trim();
+      const text = s ? `${t} · ${s}` : t;
+
       if(!text){
         inner.style.transform = "translateX(0)";
+        inner.innerHTML = "";
         return;
       }
 
-      // Build 2 copies for seamless loop
+      // Build 2 copies + spacing (continuous loop; no "long blank" pause)
       inner.innerHTML = `
         <span class="mwLine">${escapeHtml(text)}</span>
         <span class="mwGap" aria-hidden="true"></span>
         <span class="mwLine">${escapeHtml(text)}</span>
       `;
 
-      // Ensure layout measures correctly
       inner.style.display = "inline-flex";
       inner.style.alignItems = "center";
       inner.style.willChange = "transform";
 
       const first = inner.querySelector(".mwLine");
       const gap = inner.querySelector(".mwGap");
-      // ✅ 두 번째 복사본이 화면에 같이 보이지 않게, 간격을 컨테이너 폭만큼 크게 잡아요
-      const wrapW = wrap.getBoundingClientRect().width;
-      const gapW = Math.max(wrapW + 40, 200);
+
+      const wrapW = wrap.getBoundingClientRect().width || 320;
+      // ✅ spacing: 넉넉하지만 '사라져 보일 만큼' 길지 않게
+      const gapW = Math.max(wrapW * 0.55, 220);
       if(gap) gap.style.width = gapW + "px";
 
       let x = 0;
-      const speed = 0.55; // px per frame-ish (tweakable)
+      const speed = 0.55;
 
       function tick(){
         const firstW = first ? first.getBoundingClientRect().width : inner.getBoundingClientRect().width;
         const resetAt = -(firstW + gapW);
+
         x -= speed;
-        if(x <= resetAt) x = 0;
+        if(x <= resetAt){
+          x = 0;
+        }
+
         inner.style.transform = `translateX(${x}px)`;
         mwMarqueeRAF = requestAnimationFrame(tick);
       }
@@ -1497,20 +1578,7 @@ const mw = {
 
 const updateMarquee = ()=>{
       if(!mw.marquee || !mw.marqueeInner) return;
-
-      const t = (mw.title?.textContent || "").trim();
-      const s = (mw.sub?.textContent || "").trim();
-      const line = s
-        ? `<span class="mwT">${escapeHtml(t)}</span><span aria-hidden="true"> · </span><span class="mwSub">${escapeHtml(s)}</span>`
-        : `<span class="mwT">${escapeHtml(t)}</span>`;
-
-      // ✅ 한 번만 출력
-       mw.marqueeInner.innerHTML = line;
-      // 오버플로우일 때만 스크롤
-      requestAnimationFrame(()=>{
-        const need = mw.marqueeInner.scrollWidth > mw.marquee.clientWidth + 8;
-        mw.marquee.classList.toggle("scroll", need);
-      });
+      startMarqueeAlways();
     };
 
     // Always run JS marquee (CSS animation disabled above)
@@ -1648,6 +1716,14 @@ const renderList = ()=>{
 
     // 리스트에서 곡 선택
     mw.list.addEventListener("click", (e)=>{
+      // ✅ lyrics button click first (don't change track)
+      const lyBtn = e.target.closest(".lyBtn");
+      if(lyBtn){
+        e.stopPropagation();
+        openLyrics(Number(lyBtn.getAttribute("data-ly")));
+        return;
+      }
+
       const actBtn = e.target.closest("[data-act]");
       if(actBtn){
         const act = actBtn.getAttribute("data-act");
@@ -1673,6 +1749,38 @@ const renderList = ()=>{
   }
 catch(e){ console.warn('music widget error', e); }
 
+
+    // ===== Lyrics modal wiring =====
+    const lyModal = document.getElementById("lyModal");
+    const lyTitleEl = document.getElementById("lyTitleEl");
+    const lyMetaEl  = document.getElementById("lyMetaEl");
+    const lyBodyEl  = document.getElementById("lyBodyEl");
+
+    function openLyrics(i){
+      const t = playlist[i];
+      if(!t || !(t.lyrics && String(t.lyrics).trim())) return;
+      lyTitleEl.textContent = t.title || "가사";
+      lyMetaEl.textContent  = t.artist || "";
+      lyBodyEl.textContent  = t.lyrics;
+      lyModal.classList.add("open");
+      lyModal.setAttribute("aria-hidden","false");
+      document.body.style.overflow = "hidden";
+    }
+    function closeLyrics(){
+      lyModal.classList.remove("open");
+      lyModal.setAttribute("aria-hidden","true");
+      document.body.style.overflow = "";
+    }
+
+    if(lyModal){
+      lyModal.addEventListener("click", (e)=>{
+        if(e.target.closest("[data-ly-close]")) closeLyrics();
+      });
+      window.addEventListener("keydown", (e)=>{
+        if(e.key === "Escape" && lyModal.classList.contains("open")) closeLyrics();
+      });
+    }
+
 // ---------- start ----------
   setDbg('JS: render…');
   renderNotices();
@@ -1692,6 +1800,22 @@ document.addEventListener("DOMContentLoaded", function(){
   }
 });
 </script>
+
+
+<!-- ===== Lyrics Modal ===== -->
+<div class="lyModal" id="lyModal" aria-hidden="true">
+  <div class="lyBackdrop" data-ly-close="1"></div>
+  <div class="lyPanel" role="dialog" aria-modal="true" aria-labelledby="lyTitleEl">
+    <div class="lyHead">
+      <div class="lyHText">
+        <div id="lyTitleEl" class="lyTitle">가사</div>
+        <div id="lyMetaEl" class="lyMeta"></div>
+      </div>
+      <button class="lyClose" type="button" data-ly-close="1" aria-label="닫기">✕</button>
+    </div>
+    <pre class="lyBody" id="lyBodyEl"></pre>
+  </div>
+</div>
 
 </body>
 </html>
