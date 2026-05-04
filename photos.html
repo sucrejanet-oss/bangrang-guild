@@ -216,7 +216,7 @@
       padding: 16px;
       z-index: 9999;
     }
-    .modal-wrap{position:relative; width:min(1120px, 100%);}
+    .modal-wrap{position:relative; width:min(1500px, calc(100vw - 28px));}
     .xbtn{
       position:absolute;
       top: 10px; right: 10px;
@@ -242,7 +242,7 @@
       box-shadow: var(--shadow2);
       overflow:hidden;
       display:grid;
-      grid-template-columns: 1.65fr 1fr;
+      grid-template-columns: minmax(0, 2.8fr) minmax(260px, .85fr);
     }
     @media (max-width:860px){
       .modal{ grid-template-columns: 1fr; }
@@ -255,7 +255,7 @@
     .modal-media img{
       width: 100%;
       height: auto;
-      max-height: 82vh;
+      max-height: 88vh;
       object-fit: contain;
       border-radius: 18px;
       border: 1px solid rgba(0,0,0,.12);
@@ -265,6 +265,17 @@
     @media (max-width:860px){
       .modal-media img{ max-height: 76vh; }
     }
+
+    /* Desktop: make photo popup much larger */
+    @media (min-width:861px){
+      .modal-backdrop{ padding: 18px; }
+      .modal-wrap{ width:min(1500px, calc(100vw - 36px)); }
+      .modal{ max-height: calc(100vh - 36px); }
+      .modal-media{ min-height: min(88vh, 920px); padding: 18px; }
+      .modal-media img{ max-height: calc(100vh - 72px); }
+      .modal-side{ max-height: calc(100vh - 36px); overflow:auto; }
+    }
+
     .modal-side{
       padding: 18px 18px 16px;
       display:flex;
