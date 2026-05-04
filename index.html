@@ -732,6 +732,32 @@ nav{
 /* ===== END PATCH ===== */
 
 
+
+/* ===== Main tips search ===== */
+.tipSearchBox{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin:10px 0 12px;
+}
+.tipSearchBox .input{flex:1; min-width:0;}
+.tipSearchClear{
+  cursor:pointer;
+  border:1px solid rgba(244,143,177,.25);
+  background:#fff;
+  color:var(--muted);
+  padding:9px 10px;
+  border-radius:14px;
+  font-weight:800;
+  font-size:12px;
+  white-space:nowrap;
+}
+.tipSearchClear:hover{color:var(--text); filter:brightness(1.02)}
+@media (max-width: 520px){
+  .tipSearchBox{gap:6px;}
+  .tipSearchClear{padding:9px 9px;}
+}
+
 /* ===== Lyrics Modal ===== */
 .lyModal{
   position:fixed;
@@ -942,6 +968,11 @@ nav{
       <section class="card" id="tips">
         <h2><span class="emoji">🎮</span> 꿀팁 게시판</h2>
         <p class="sub"> 게임에 도움되는 꿀팁을 확인할 수 있어요.</p>
+
+        <div class="tipSearchBox" role="search" aria-label="꿀팁 검색">
+          <input class="input" id="tipSearchInput" type="search" placeholder="꿀팁 검색하기 ex) 어비스, 장비, 심구" autocomplete="off" />
+          <button class="tipSearchClear" id="tipSearchClear" type="button">초기화</button>
+        </div>
 
         <div id="tipState" class="sub" style="margin-top:10px;">불러오는 중...</div>
         <div class="list" id="tipPreview" style="margin-top:14px; display:none;"></div>
@@ -1307,7 +1338,78 @@ function renderImages(urls){
   }
 
   
-  // ---------- 꿀팁 미리보기: Notion에서 최신 4개 ----------
+  // ---------- 꿀팁 미리보기 + 메인 검색 ----------
+  let tipCache = [];
+  let tipSearchReady = false;
+
+  function getTipSearchText(item){
+    return [
+      item.title,
+      item.category,
+      item.body,
+      ...(item.tags || [])
+    ].filter(Boolean).join(" ").toLowerCase();
+  }
+
+  function tipCardHtml(item){
+    const tags = (item.tags||[]).filter(Boolean);
+    const mainBadges = (tags.length ? tags.slice(0,2) : (item.category ? [item.category] : []))
+      .map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join("");
+
+    return `
+      <div class="item">
+        <div class="itemTop">
+          <div style="width:100%">
+            <p class="title">${escapeHtml(item.title)}</p>
+            <div class="meta" style="margin-top:8px">
+              ${mainBadges}
+              ${item.date ? `<span>📅 ${escapeHtml(item.date)}</span>` : ``}
+            </div>
+          </div>
+        </div>
+        <details>
+          <summary>내용 보기</summary>
+          <div class="content">${renderImages(item.images)}${toParagraphs(item.body)}</div>
+        </details>
+      </div>
+    `;
+  }
+
+  function renderTipSearchResults(){
+    const stateEl = $("tipState");
+    const listEl  = $("tipPreview");
+    const inputEl = $("tipSearchInput");
+    if(!stateEl || !listEl) return;
+
+    const q = (inputEl?.value || "").trim().toLowerCase();
+
+    if(!tipCache.length){
+      stateEl.style.display = "block";
+      stateEl.textContent = "아직 등록된 꿀팁이 없어요. 첫 꿀팁 올려줘요 💖";
+      listEl.style.display = "none";
+      return;
+    }
+
+    const results = q
+      ? tipCache.filter(item => getTipSearchText(item).includes(q))
+      : tipCache.slice(0,4);
+
+    if(!results.length){
+      stateEl.style.display = "block";
+      stateEl.textContent = `검색 결과가 없어요: ${inputEl?.value || ""}`;
+      listEl.style.display = "none";
+      return;
+    }
+
+    stateEl.style.display = "block";
+    stateEl.textContent = q
+      ? `검색 결과 ${results.length}개`
+      : `최신 꿀팁 ${Math.min(4, tipCache.length)}개 · 검색하면 전체 꿀팁에서 찾아드려요`;
+
+    listEl.style.display = "grid";
+    listEl.innerHTML = results.map(tipCardHtml).join("");
+  }
+
   async function renderTipPreview(){
     const stateEl = $("tipState");
     const listEl  = $("tipPreview");
@@ -1320,37 +1422,24 @@ function renderImages(urls){
     try{
       const list = await fetchList("tips");
       list.sort((a,b)=> (b.date||"").localeCompare(a.date||""));
+      tipCache = list;
+      renderTipSearchResults();
 
-      if(!list.length){
-        stateEl.textContent = "아직 등록된 꿀팁이 없어요. 첫 꿀팁 올려줘요 💖";
-        listEl.style.display = "none";
-        return;
+      if(!tipSearchReady){
+        tipSearchReady = true;
+        const inputEl = $("tipSearchInput");
+        const clearEl = $("tipSearchClear");
+        if(inputEl){
+          inputEl.addEventListener("input", renderTipSearchResults);
+        }
+        if(clearEl){
+          clearEl.addEventListener("click", ()=>{
+            if(inputEl) inputEl.value = "";
+            renderTipSearchResults();
+            inputEl?.focus();
+          });
+        }
       }
-
-      stateEl.style.display = "none";
-      listEl.style.display = "grid";
-      listEl.innerHTML = list.slice(0,4).map(item=>{
-        const tags = (item.tags||[]).filter(Boolean);
-        const mainBadges = (tags.length ? tags.slice(0,2) : (item.category ? [item.category] : []))
-          .map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join("");
-        return `
-          <div class="item">
-            <div class="itemTop">
-              <div style="width:100%">
-                <p class="title">${escapeHtml(item.title)}</p>
-                <div class="meta" style="margin-top:8px">
-                  ${mainBadges}
-                  ${item.date ? `<span>📅 ${escapeHtml(item.date)}</span>` : ``}
-                </div>
-              </div>
-            </div>
-            <details>
-              <summary>내용 보기</summary>
-              <div class="content">${renderImages(item.images)}${toParagraphs(item.body)}</div>
-            </details>
-          </div>
-        `;
-      }).join("");
     }catch(e){
       stateEl.textContent = "꿀팁 불러오기 실패: " + (e?.message || String(e));
       listEl.style.display = "none";
