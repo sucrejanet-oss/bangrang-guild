@@ -1786,7 +1786,7 @@ catch(e){ console.warn('music widget error', e); }
       els.body.textContent = await loadLyricsText(t);
     }
 
-    function closeLyrics    function closeLyrics(){
+    function closeLyrics(){
       const els = getLyEls();
       if(!els.modal) return;
       els.modal.classList.remove("open");
